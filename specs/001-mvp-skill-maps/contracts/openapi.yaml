@@ -1,0 +1,1181 @@
+openapi: 3.1.0
+info:
+  title: SKILL MAPS API
+  version: 1.0.0
+  description: Contract for the SKILL MAPS MVP web application.
+  license:
+    name: UNLICENSED
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: /api
+security: []
+tags:
+  - name: Security
+    description: Browser request security bootstrap.
+  - name: Identity
+    description: Registration, verification, sessions, profile, and erasure.
+  - name: Catalog
+    description: Public published learning catalog.
+  - name: Progress
+    description: User trail enrollment and append-only progress.
+  - name: Dashboard
+    description: Consolidated progress and explainable recommendations.
+  - name: Credentials
+    description: Self-declared certifications and earned achievements.
+  - name: Administration
+    description: Content administrator catalog lifecycle operations.
+
+paths:
+  /v1/security/csrf-token:
+    get:
+      tags: [Security]
+      summary: Get a browser CSRF token
+      operationId: getCsrfToken
+      responses:
+        '200':
+          description: Token bound to the current browser context.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token]
+                properties:
+                  token: { type: string, minLength: 32 }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /v1/registrations:
+    post:
+      tags: [Identity]
+      summary: Register a pending user account
+      operationId: registerUser
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegistrationRequest' }
+      responses:
+        '201':
+          description: Pending account created; no session is issued.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PendingRegistration' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /v1/email-verification-requests:
+    post:
+      tags: [Identity]
+      summary: Request another e-mail verification message
+      operationId: requestEmailVerification
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email, maxLength: 320 }
+      responses:
+        '202':
+          description: Generic response whether or not a pending account exists.
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /v1/email-verifications:
+    post:
+      tags: [Identity]
+      summary: Confirm an e-mail verification token
+      operationId: verifyEmail
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string, minLength: 32 }
+      responses:
+        '204': { description: E-mail confirmed and account activated. }
+        '410': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/sessions:
+    post:
+      tags: [Identity]
+      summary: Create an authenticated browser session
+      operationId: createSession
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, maxLength: 320 }
+                password: { type: string, minLength: 12, maxLength: 128 }
+      responses:
+        '201':
+          description: Session created and secure cookie set.
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CurrentUser' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /v1/sessions/current:
+    delete:
+      tags: [Identity]
+      summary: Revoke the current browser session
+      operationId: deleteCurrentSession
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '204': { description: Session revoked and cookie expired. }
+        '401': { $ref: '#/components/responses/Problem' }
+
+  /v1/password-reset-requests:
+    post:
+      tags: [Identity]
+      summary: Request password reset instructions
+      operationId: requestPasswordReset
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email, maxLength: 320 }
+      responses:
+        '202': { description: Generic response whether or not the account exists. }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /v1/password-resets:
+    post:
+      tags: [Identity]
+      summary: Reset a password with a one-time token
+      operationId: resetPassword
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token: { type: string, minLength: 32 }
+                newPassword: { type: string, minLength: 12, maxLength: 128 }
+      responses:
+        '204': { description: Password changed and all sessions revoked. }
+        '410': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/users/me:
+    get:
+      tags: [Identity]
+      summary: Get the current user and professional profile
+      operationId: getCurrentUser
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Current user and professional profile.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CurrentUser' }
+        '401': { $ref: '#/components/responses/Problem' }
+    patch:
+      tags: [Identity]
+      summary: Update the current professional profile
+      operationId: updateCurrentUserProfile
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema: { $ref: '#/components/schemas/ProfileInput' }
+      responses:
+        '200':
+          description: Profile updated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CurrentUser' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+    delete:
+      tags: [Identity]
+      summary: Disable and schedule erasure of the current account
+      operationId: requestCurrentUserDeletion
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, minLength: 1, maxLength: 128 }
+      responses:
+        '202':
+          description: Account disabled, sessions revoked, and erasure scheduled.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletionReceipt' }
+        '401': { $ref: '#/components/responses/Problem' }
+
+  /v1/catalog:
+    get:
+      tags: [Catalog]
+      summary: Search the published learning catalog
+      operationId: searchCatalog
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 120 }
+        - name: type
+          in: query
+          schema: { type: string, enum: [skill, trail, certification] }
+        - name: categoryId
+          in: query
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Published catalog results.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CatalogPage' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/categories:
+    get:
+      tags: [Catalog]
+      summary: List published skill categories
+      operationId: listCategories
+      responses:
+        '200':
+          description: Active published categories.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Category' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /v1/skills/{skillId}:
+    get:
+      tags: [Catalog]
+      summary: Get a published skill and its relationships
+      operationId: getSkill
+      parameters:
+        - $ref: '#/components/parameters/SkillId'
+      responses:
+        '200':
+          description: Published skill and its relationships.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SkillDetail' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /v1/trails/{trailId}:
+    get:
+      tags: [Catalog]
+      summary: Get the current publication of a learning trail
+      operationId: getTrail
+      parameters:
+        - $ref: '#/components/parameters/TrailId'
+      responses:
+        '200':
+          description: Current published trail revision.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrailDetail' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /v1/certifications/{certificationId}:
+    get:
+      tags: [Catalog]
+      summary: Get the current publication of a certification
+      operationId: getCertification
+      parameters:
+        - $ref: '#/components/parameters/CertificationId'
+      responses:
+        '200':
+          description: Current published certification revision.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CertificationDetail' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /v1/me/trails/{trailId}:
+    put:
+      tags: [Progress]
+      summary: Start or return a user learning trail
+      operationId: startTrail
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TrailId'
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Existing or newly started trail state.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrailProgress' }
+        '404': { $ref: '#/components/responses/Problem' }
+    get:
+      tags: [Progress]
+      summary: Get current trail progress and history
+      operationId: getTrailProgress
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TrailId'
+      responses:
+        '200':
+          description: Current state and chronological progress history.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrailProgress' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /v1/me/trails/{trailId}/steps/{stepId}/events:
+    post:
+      tags: [Progress]
+      summary: Append a user progress event
+      operationId: appendProgressEvent
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TrailId'
+        - $ref: '#/components/parameters/StepId'
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProgressCommand' }
+      responses:
+        '201':
+          description: Event appended and current projection updated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProgressCommandResult' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/me/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get the current user dashboard
+      operationId: getDashboard
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Progress summary and explainable recommendations.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dashboard' }
+        '401': { $ref: '#/components/responses/Problem' }
+
+  /v1/me/certification-records:
+    get:
+      tags: [Credentials]
+      summary: List certification acquisitions and renewals
+      operationId: listCertificationRecords
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: All self-declared acquisitions and renewals.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CertificationRecord' }
+        '401': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [Credentials]
+      summary: Record a certification acquisition or renewal
+      operationId: createCertificationRecord
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CertificationRecordInput' }
+      responses:
+        '201':
+          description: Separate acquisition or renewal created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CertificationRecord' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/me/achievements:
+    get:
+      tags: [Credentials]
+      summary: List achievements earned by the current user
+      operationId: listAchievements
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Awards granted to the current user.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AchievementAward' }
+        '401': { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/categories:
+    post:
+      tags: [Administration]
+      summary: Create a draft skill category
+      operationId: createCategory
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryInput' }
+      responses:
+        '201':
+          description: Draft category created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/skills:
+    post:
+      tags: [Administration]
+      summary: Create a draft skill
+      operationId: createSkill
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SkillInput' }
+      responses:
+        '201':
+          description: Draft skill created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/trails:
+    post:
+      tags: [Administration]
+      summary: Create a draft learning trail
+      operationId: createTrail
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrailDraftInput' }
+      responses:
+        '201':
+          description: Draft trail created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/trails/{trailId}:
+    patch:
+      tags: [Administration]
+      summary: Update a draft learning trail
+      operationId: updateTrailDraft
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TrailId'
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema: { $ref: '#/components/schemas/TrailDraftInput' }
+      responses:
+        '200':
+          description: Draft trail updated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/admin/trails/{trailId}/publications:
+    post:
+      tags: [Administration]
+      summary: Publish a complete immutable trail revision
+      operationId: publishTrail
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TrailId'
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '201':
+          description: Immutable revision published and made current.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Publication' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/admin/certifications:
+    post:
+      tags: [Administration]
+      summary: Create a draft certification
+      operationId: createCertification
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CertificationInput' }
+      responses:
+        '201':
+          description: Draft certification created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/achievements:
+    post:
+      tags: [Administration]
+      summary: Create a draft achievement
+      operationId: createAchievement
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AchievementInput' }
+      responses:
+        '201':
+          description: Draft achievement created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/admin/catalog/{resourceType}/{resourceId}:
+    patch:
+      tags: [Administration]
+      summary: Update a non-trail catalog draft
+      operationId: updateCatalogDraft
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ResourceType'
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema: { $ref: '#/components/schemas/CatalogDraftInput' }
+      responses:
+        '200':
+          description: Draft resource updated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/admin/catalog/{resourceType}/{resourceId}/publications:
+    post:
+      tags: [Administration]
+      summary: Publish a non-trail catalog revision
+      operationId: publishCatalogResource
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ResourceType'
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '201':
+          description: Immutable revision published and made current.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Publication' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/admin/catalog/{resourceType}/{resourceId}/status:
+    patch:
+      tags: [Administration]
+      summary: Unpublish or deactivate a catalog resource
+      operationId: updateCatalogResourceStatus
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ResourceType'
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [status]
+              properties:
+                status: { type: string, enum: [unpublished, inactive] }
+      responses:
+        '200':
+          description: Resource lifecycle changed without destructive deletion.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: __Host-skillmaps-session
+
+  parameters:
+    CsrfToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      schema: { type: string, minLength: 32 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+    SkillId:
+      name: skillId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    TrailId:
+      name: trailId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    StepId:
+      name: stepId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    CertificationId:
+      name: certificationId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ResourceType:
+      name: resourceType
+      in: path
+      required: true
+      schema: { type: string, enum: [category, skill, certification, achievement] }
+    ResourceId:
+      name: resourceId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Problem:
+      description: RFC 9457 problem response.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ValidationProblem:
+      description: Input failed validation.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ValidationProblem' }
+
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code, requestId]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer, minimum: 400, maximum: 599 }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code: { type: string, pattern: '^[A-Z0-9_]+$' }
+        requestId: { type: string }
+    ValidationProblem:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          required: [errors]
+          properties:
+            errors:
+              type: array
+              maxItems: 50
+              items:
+                type: object
+                required: [path, code]
+                properties:
+                  path: { type: string }
+                  code: { type: string }
+                  message: { type: string }
+
+    RegistrationRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password, acceptTerms]
+      properties:
+        email: { type: string, format: email, maxLength: 320 }
+        password: { type: string, minLength: 12, maxLength: 128 }
+        acceptTerms: { const: true }
+    PendingRegistration:
+      type: object
+      required: [status]
+      properties:
+        status: { const: pending_verification }
+    ProfileInput:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 120 }
+        currentRoleId: { type: [string, 'null'], format: uuid }
+        desiredRoleId: { type: [string, 'null'], format: uuid }
+        experienceLevel: { type: string, enum: [beginner, intermediate, advanced] }
+        interestCategoryIds:
+          type: array
+          uniqueItems: true
+          maxItems: 20
+          items: { type: string, format: uuid }
+        interestSkillIds:
+          type: array
+          uniqueItems: true
+          maxItems: 50
+          items: { type: string, format: uuid }
+    CurrentUser:
+      type: object
+      required: [id, status, roles, profile]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [active] }
+        roles:
+          type: array
+          items: { type: string, enum: [user, content_admin] }
+        profile: { oneOf: [{ $ref: '#/components/schemas/ProfileInput' }, { type: 'null' }] }
+    DeletionReceipt:
+      type: object
+      required: [requestId, status, requestedAt, deadlineAt]
+      properties:
+        requestId: { type: string, format: uuid }
+        status: { const: requested }
+        requestedAt: { type: string, format: date-time }
+        deadlineAt: { type: string, format: date-time }
+
+    Category:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string }
+    CatalogPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CatalogItem' }
+        nextCursor: { type: [string, 'null'] }
+    CatalogItem:
+      type: object
+      required: [id, type, slug, title, summary]
+      properties:
+        id: { type: string, format: uuid }
+        type: { type: string, enum: [skill, trail, certification] }
+        slug: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        category: { oneOf: [{ $ref: '#/components/schemas/Category' }, { type: 'null' }] }
+    SkillDetail:
+      allOf:
+        - $ref: '#/components/schemas/CatalogItem'
+        - type: object
+          required: [relatedTrails, relatedCertifications]
+          properties:
+            relatedTrails:
+              type: array
+              items: { $ref: '#/components/schemas/CatalogItem' }
+            relatedCertifications:
+              type: array
+              items: { $ref: '#/components/schemas/CatalogItem' }
+    TrailStep:
+      type: object
+      required: [id, position, title, required, skills, prerequisiteStepIds]
+      properties:
+        id: { type: string, format: uuid }
+        position: { type: integer, minimum: 1 }
+        title: { type: string }
+        description: { type: string }
+        required: { type: boolean }
+        skills:
+          type: array
+          items: { $ref: '#/components/schemas/CatalogItem' }
+        prerequisiteStepIds:
+          type: array
+          uniqueItems: true
+          items: { type: string, format: uuid }
+    TrailDetail:
+      allOf:
+        - $ref: '#/components/schemas/CatalogItem'
+        - type: object
+          required: [revisionId, steps, relatedCertifications]
+          properties:
+            revisionId: { type: string, format: uuid }
+            steps:
+              type: array
+              items: { $ref: '#/components/schemas/TrailStep' }
+            relatedCertifications:
+              type: array
+              items: { $ref: '#/components/schemas/CatalogItem' }
+    CertificationDetail:
+      allOf:
+        - $ref: '#/components/schemas/CatalogItem'
+        - type: object
+          required: [revisionId, issuer, skills, trails, requirements]
+          properties:
+            revisionId: { type: string, format: uuid }
+            issuer: { type: string }
+            skills:
+              type: array
+              items: { $ref: '#/components/schemas/CatalogItem' }
+            trails:
+              type: array
+              items: { $ref: '#/components/schemas/CatalogItem' }
+            requirements:
+              type: array
+              items:
+                type: object
+                required: [id, title, type, required]
+                properties:
+                  id: { type: string, format: uuid }
+                  title: { type: string }
+                  type: { type: string, enum: [skill, trail] }
+                  targetId: { type: string, format: uuid }
+                  required: { type: boolean }
+
+    ProgressCommand:
+      type: object
+      additionalProperties: false
+      required: [state, baseStreamVersion]
+      properties:
+        state: { type: string, enum: [not_started, in_progress, completed] }
+        baseStreamVersion: { type: integer, minimum: 0 }
+        supersedesEventId: { type: [integer, 'null'], minimum: 1 }
+    ProgressCommandResult:
+      type: object
+      required: [eventId, streamVersion, state, reviewRequired, trailProgress]
+      properties:
+        eventId: { type: integer, minimum: 1 }
+        streamVersion: { type: integer, minimum: 1 }
+        state: { type: string, enum: [not_started, in_progress, completed] }
+        reviewRequired: { type: boolean }
+        trailProgress: { $ref: '#/components/schemas/TrailProgress' }
+    TrailProgress:
+      type: object
+      required: [trailId, currentRevisionId, status, percentage, streamVersion, steps, history]
+      properties:
+        trailId: { type: string, format: uuid }
+        currentRevisionId: { type: string, format: uuid }
+        status: { type: string, enum: [in_progress, completed] }
+        percentage: { type: number, minimum: 0, maximum: 100 }
+        streamVersion: { type: integer, minimum: 0 }
+        catalogChanged: { type: boolean }
+        reviewRequired: { type: boolean }
+        steps:
+          type: array
+          items:
+            type: object
+            required: [stepId, state, eligible]
+            properties:
+              stepId: { type: string, format: uuid }
+              state: { type: string, enum: [not_started, in_progress, completed] }
+              eligible: { type: boolean }
+              pendingPrerequisiteStepIds:
+                type: array
+                items: { type: string, format: uuid }
+        history:
+          type: array
+          items:
+            type: object
+            required: [eventId, stepId, state, occurredAt, source]
+            properties:
+              eventId: { type: integer, minimum: 1 }
+              stepId: { type: string, format: uuid }
+              state: { type: string, enum: [not_started, in_progress, completed] }
+              occurredAt: { type: string, format: date-time }
+              source: { type: string, enum: [user, admin_correction, system] }
+    Dashboard:
+      type: object
+      required: [activeTrails, certificationRecords, achievements, recommendations]
+      properties:
+        activeTrails:
+          type: array
+          items: { $ref: '#/components/schemas/TrailProgress' }
+        certificationRecords:
+          type: array
+          items: { $ref: '#/components/schemas/CertificationRecord' }
+        achievements:
+          type: array
+          items: { $ref: '#/components/schemas/AchievementAward' }
+        recommendations:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/Recommendation' }
+    Recommendation:
+      type: object
+      required: [id, rank, targetType, trailId, reasonCode, explanation]
+      properties:
+        id: { type: string, format: uuid }
+        rank: { type: integer, minimum: 1, maximum: 3 }
+        targetType: { type: string, enum: [trail_step, trail] }
+        trailId: { type: string, format: uuid }
+        stepId: { type: [string, 'null'], format: uuid }
+        reasonCode: { type: string, enum: [next_eligible_step, desired_role, interest_match] }
+        explanation: { type: string }
+    CertificationRecordInput:
+      type: object
+      additionalProperties: false
+      required: [certificationId, obtainedOn]
+      properties:
+        certificationId: { type: string, format: uuid }
+        obtainedOn: { type: string, format: date }
+        externalIdentifier: { type: [string, 'null'], maxLength: 180 }
+        expiresOn: { type: [string, 'null'], format: date }
+    CertificationRecord:
+      allOf:
+        - $ref: '#/components/schemas/CertificationRecordInput'
+        - type: object
+          required: [id, verificationStatus, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            verificationStatus: { const: self_declared }
+            createdAt: { type: string, format: date-time }
+    AchievementAward:
+      type: object
+      required: [achievementId, title, awardedAt]
+      properties:
+        achievementId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        awardedAt: { type: string, format: date-time }
+
+    CategoryInput:
+      type: object
+      additionalProperties: false
+      required: [slug, name, description]
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
+    SkillInput:
+      type: object
+      additionalProperties: false
+      required: [slug, categoryId, name, description]
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        categoryId: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        description: { type: string, minLength: 1, maxLength: 4000 }
+    TrailDraftInput:
+      type: object
+      additionalProperties: false
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        categoryId: { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 180 }
+        description: { type: string, minLength: 1, maxLength: 8000 }
+        targetRoleIds:
+          type: array
+          uniqueItems: true
+          items: { type: string, format: uuid }
+        steps:
+          type: array
+          maxItems: 200
+          items:
+            type: object
+            required: [stepId, position, title, required, skillIds, prerequisiteStepIds]
+            properties:
+              stepId: { type: string, format: uuid }
+              position: { type: integer, minimum: 1 }
+              title: { type: string, minLength: 1, maxLength: 180 }
+              description: { type: string, maxLength: 4000 }
+              required: { type: boolean }
+              skillIds:
+                type: array
+                uniqueItems: true
+                items: { type: string, format: uuid }
+              prerequisiteStepIds:
+                type: array
+                uniqueItems: true
+                items: { type: string, format: uuid }
+    CertificationInput:
+      type: object
+      additionalProperties: false
+      required: [slug, name, issuer, description]
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        name: { type: string, minLength: 1, maxLength: 180 }
+        issuer: { type: string, minLength: 1, maxLength: 180 }
+        description: { type: string, minLength: 1, maxLength: 8000 }
+        skillIds:
+          type: array
+          uniqueItems: true
+          items: { type: string, format: uuid }
+        trailIds:
+          type: array
+          uniqueItems: true
+          items: { type: string, format: uuid }
+    AchievementInput:
+      type: object
+      additionalProperties: false
+      required: [slug, title, description, criterionType, criterionParameters]
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        title: { type: string, minLength: 1, maxLength: 180 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
+        criterionType:
+          type: string
+          enum: [first_step_completed, trail_completed, certification_recorded]
+        criterionParameters:
+          type: object
+          maxProperties: 10
+    CatalogDraftInput:
+      oneOf:
+        - $ref: '#/components/schemas/CategoryPatch'
+        - $ref: '#/components/schemas/SkillPatch'
+        - $ref: '#/components/schemas/CertificationPatch'
+        - $ref: '#/components/schemas/AchievementPatch'
+    CategoryPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
+    SkillPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        categoryId: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        description: { type: string, minLength: 1, maxLength: 4000 }
+    CertificationPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        name: { type: string, minLength: 1, maxLength: 180 }
+        issuer: { type: string, minLength: 1, maxLength: 180 }
+        description: { type: string, minLength: 1, maxLength: 8000 }
+        skillIds:
+          type: array
+          uniqueItems: true
+          items: { type: string, format: uuid }
+        trailIds:
+          type: array
+          uniqueItems: true
+          items: { type: string, format: uuid }
+    AchievementPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        title: { type: string, minLength: 1, maxLength: 180 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
+        criterionType:
+          type: string
+          enum: [first_step_completed, trail_completed, certification_recorded]
+        criterionParameters:
+          type: object
+          maxProperties: 10
+    AdminCatalogResource:
+      type: object
+      required: [id, slug, status, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        status: { type: string, enum: [draft, published, unpublished, inactive] }
+        updatedAt: { type: string, format: date-time }
+    Publication:
+      type: object
+      required: [resourceId, revisionId, revisionNumber, publishedAt]
+      properties:
+        resourceId: { type: string, format: uuid }
+        revisionId: { type: string, format: uuid }
+        revisionNumber: { type: integer, minimum: 1 }
+        publishedAt: { type: string, format: date-time }
