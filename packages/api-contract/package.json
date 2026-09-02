@@ -1,0 +1,23 @@
+{
+  "name": "@skill-maps/api-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "generate": "node scripts/sync-openapi.mjs && openapi-ts -i openapi.yaml -o src/generated",
+    "sync": "node scripts/sync-openapi.mjs",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit",
+    "validate": "node scripts/sync-openapi.mjs && redocly lint openapi.yaml"
+  },
+  "devDependencies": {
+    "@redocly/cli": "2.49.0",
+    "@hey-api/openapi-ts": "0.99.0",
+    "typescript": "6.0.3",
+    "vitest": "^4.1.11"
+  }
+}

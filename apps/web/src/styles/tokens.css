@@ -1,0 +1,18 @@
+:root {
+  --color-ink: #16221d;
+  --color-muted: #52635b;
+  --color-paper: #f5f1e8;
+  --color-surface: #fffdf7;
+  --color-accent: #006c55;
+  --color-focus: #bd3c16;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --content-width: 72rem;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  line-height: 1.5;
+}

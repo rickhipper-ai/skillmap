@@ -1,0 +1,9 @@
+.opencode/
+.specify/
+specs/
+**/coverage/
+**/dist/
+**/node_modules/
+packages/api-contract/openapi.yaml
+packages/api-contract/src/generated/
+pnpm-lock.yaml

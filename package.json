@@ -1,0 +1,37 @@
+{
+  "name": "skill-maps",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mapa de aprendizagem e desenvolvimento profissional.",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "corepack pnpm --recursive build",
+    "ci": "corepack pnpm format:check && corepack pnpm lint && corepack pnpm typecheck && corepack pnpm contract:validate && corepack pnpm test && corepack pnpm build",
+    "contract:generate": "corepack pnpm --filter @skill-maps/api-contract generate",
+    "contract:sync": "corepack pnpm --filter @skill-maps/api-contract sync",
+    "contract:validate": "corepack pnpm --filter @skill-maps/api-contract validate",
+    "db:seed:mvp": "corepack pnpm --filter @skill-maps/api exec tsx ../../database/seeds/mvp-catalog.ts",
+    "dev": "corepack pnpm --parallel --filter @skill-maps/api --filter @skill-maps/web dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "test": "corepack pnpm --recursive test",
+    "test:e2e": "playwright test --pass-with-no-tests",
+    "typecheck": "corepack pnpm --recursive typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@redocly/cli": "2.49.0",
+    "eslint": "^10.0.0",
+    "globals": "^17.3.0",
+    "prettier": "^3.6.2",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.56.1",
+    "vitest": "^4.1.11"
+  }
+}

@@ -1,0 +1,82 @@
+import { Kysely, PostgresDialect } from 'kysely';
+import { Pool } from 'pg';
+
+export interface FoundationDatabase {
+  audit_events: {
+    id: bigint;
+    event_type: string;
+    actor_id: string | null;
+    subject_id: string | null;
+    request_id: string | null;
+    outcome: 'success' | 'denied' | 'failure';
+    metadata: unknown;
+    occurred_at: Date;
+  };
+  background_jobs: {
+    id: string;
+    job_type: string;
+    idempotency_key: string;
+    payload: unknown;
+    status: 'pending' | 'running' | 'retry' | 'completed' | 'failed';
+    available_at: Date;
+    attempts: number;
+    max_attempts: number;
+    last_error_code: string | null;
+    locked_at: Date | null;
+    completed_at: Date | null;
+    created_at: Date;
+    updated_at: Date;
+  };
+  users: Record<string, unknown>;
+  auth_accounts: Record<string, unknown>;
+  auth_sessions: Record<string, unknown>;
+  auth_tokens: Record<string, unknown>;
+  user_roles: Record<string, unknown>;
+  professional_roles: Record<string, unknown>;
+  professional_profiles: Record<string, unknown>;
+  skill_categories: Record<string, unknown>;
+  skills: Record<string, unknown>;
+  category_revisions: Record<string, unknown>;
+  skill_revisions: Record<string, unknown>;
+  learning_trails: Record<string, unknown>;
+  trail_revisions: Record<string, unknown>;
+  trail_steps: Record<string, unknown>;
+  trail_revision_steps: Record<string, unknown>;
+  trail_step_skills: Record<string, unknown>;
+  trail_step_prerequisites: Record<string, unknown>;
+  trail_target_roles: Record<string, unknown>;
+  certifications: Record<string, unknown>;
+  certification_revisions: Record<string, unknown>;
+  certification_revision_skills: Record<string, unknown>;
+  certification_revision_trails: Record<string, unknown>;
+  certification_requirements: Record<string, unknown>;
+  profile_interest_categories: Record<string, unknown>;
+  profile_interest_skills: Record<string, unknown>;
+  account_deletion_requests: Record<string, unknown>;
+  anonymous_metrics: Record<string, unknown>;
+}
+
+export interface OwnedDatabase {
+  db: Kysely<FoundationDatabase>;
+  pool: Pool;
+  destroy(): Promise<void>;
+}
+
+export function createDatabase(connectionString: string): OwnedDatabase {
+  const pool = new Pool({
+    connectionString,
+    options: '-c role=skill_maps_runtime',
+    connectionTimeoutMillis: 5_000,
+    idleTimeoutMillis: 30_000,
+    max: 10,
+  });
+  const db = new Kysely<FoundationDatabase>({ dialect: new PostgresDialect({ pool }) });
+
+  return {
+    db,
+    pool,
+    async destroy() {
+      await db.destroy();
+    },
+  };
+}

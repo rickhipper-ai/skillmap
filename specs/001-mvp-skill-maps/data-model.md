@@ -40,7 +40,7 @@ Validation:
 - Transition to `deletion_pending` is irreversible through normal application flows.
 - Role values are server-owned and cannot be set through registration/profile input.
 
-### auth_credentials, auth_sessions, auth_tokens
+### auth_accounts, auth_sessions, auth_tokens
 
 Better Auth-owned credential, opaque session, e-mail verification, and password reset records. Their
 schema is incorporated into the same reviewed migration sequence.

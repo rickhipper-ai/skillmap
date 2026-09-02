@@ -26,16 +26,16 @@ independent increment. Exact source paths follow `plan.md`.
 
 **Purpose**: Initialize the repository, workspace, applications, quality tools, and local services.
 
-- [ ] T001 Initialize Git metadata and secret-safe ignore rules in `.git/` and `.gitignore`
-- [ ] T002 Create the pnpm workspace and root scripts in `package.json` and `pnpm-workspace.yaml`
-- [ ] T003 [P] Scaffold the React/Vite package and scripts in `apps/web/package.json`, `apps/web/index.html`, and `apps/web/tsconfig.json`
-- [ ] T004 [P] Scaffold the Fastify package and scripts in `apps/api/package.json` and `apps/api/tsconfig.json`
-- [ ] T005 [P] Create the OpenAPI code-generation package in `packages/api-contract/package.json` and `packages/api-contract/openapi.yaml`
-- [ ] T006 [P] Configure shared TypeScript, ESLint, Prettier, and editor settings in `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json`, and `.editorconfig`
-- [ ] T007 [P] Configure local PostgreSQL 18, Mailpit, and fictitious environment defaults in `docker-compose.yml`, `.env.example`, `apps/api/.env.example`, and `apps/web/.env.example`
-- [ ] T008 [P] Configure Vitest and Playwright projects in `vitest.workspace.ts`, `playwright.config.ts`, `apps/api/vitest.config.ts`, and `apps/web/vitest.config.ts`
-- [ ] T009 [P] Add initial format, lint, typecheck, test, contract, and build gates in `.github/workflows/ci.yml`
-- [ ] T010 [P] Create the project overview and decision-record structure in `README.md` and `docs/adr/README.md`
+- [X] T001 Initialize Git metadata and secret-safe ignore rules in `.git/` and `.gitignore`
+- [X] T002 Create the pnpm workspace and root scripts in `package.json` and `pnpm-workspace.yaml`
+- [X] T003 [P] Scaffold the React/Vite package and scripts in `apps/web/package.json`, `apps/web/index.html`, and `apps/web/tsconfig.json`
+- [X] T004 [P] Scaffold the Fastify package and scripts in `apps/api/package.json` and `apps/api/tsconfig.json`
+- [X] T005 [P] Create the OpenAPI code-generation package in `packages/api-contract/package.json` and `packages/api-contract/openapi.yaml`
+- [X] T006 [P] Configure shared TypeScript, ESLint, Prettier, and editor settings in `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json`, and `.editorconfig`
+- [X] T007 [P] Configure local PostgreSQL 18, Mailpit, and fictitious environment defaults in `docker-compose.yml`, `.env.example`, `apps/api/.env.example`, and `apps/web/.env.example`
+- [X] T008 [P] Configure Vitest and Playwright projects in `vitest.workspace.ts`, `playwright.config.ts`, `apps/api/vitest.config.ts`, and `apps/web/vitest.config.ts`
+- [X] T009 [P] Add initial format, lint, typecheck, test, contract, and build gates in `.github/workflows/ci.yml`
+- [X] T010 [P] Create the project overview and decision-record structure in `README.md` and `docs/adr/README.md`
 
 **Checkpoint**: The empty monorepo installs, typechecks, and exposes runnable placeholder web/API test projects.
 
@@ -49,27 +49,27 @@ independent increment. Exact source paths follow `plan.md`.
 
 ### Foundation Tests
 
-- [ ] T011 [P] Create failing migration, runtime-role, FK, and rollback smoke tests in `database/tests/foundation.integration.test.ts`
-- [ ] T012 [P] Create failing API health, RFC 9457 error, OpenAPI exposure, CORS, and CSRF tests in `apps/api/tests/integration/foundation.test.ts`
-- [ ] T013 [P] Create failing semantic shell, route-error, focus-management, and axe tests in `apps/web/tests/app-shell.test.tsx`
+- [X] T011 [P] Create failing migration, runtime-role, FK, and rollback smoke tests in `database/tests/foundation.integration.test.ts`
+- [X] T012 [P] Create failing API health, RFC 9457 error, OpenAPI exposure, CORS, and CSRF tests in `apps/api/tests/integration/foundation.test.ts`
+- [X] T013 [P] Create failing semantic shell, route-error, focus-management, and axe tests in `apps/web/tests/app-shell.test.tsx`
 
 ### Foundation Implementation
 
-- [ ] T014 Create PostgreSQL extensions, application/migration roles, audit primitives, and migration ledger in `database/migrations/0001_foundation.sql`
-- [ ] T015 Implement Kysely connection ownership and the forward-only migration command in `apps/api/src/plugins/database.ts` and `apps/api/src/commands/migrate.ts`
-- [ ] T016 [P] Implement strict environment validation with no secret defaults in `apps/api/src/config/environment.ts` and `apps/web/src/app/environment.ts`
-- [ ] T017 [P] Implement redacted Pino logging, request IDs, OpenTelemetry bootstrap, and web-vitals hooks in `apps/api/src/plugins/observability.ts` and `apps/web/src/app/observability.ts`
-- [ ] T018 Implement Fastify composition, process lifecycle, graceful shutdown, and detail-free health routes in `apps/api/src/app.ts`, `apps/api/src/server.ts`, and `apps/api/src/modules/health/routes.ts`
-- [ ] T019 [P] Implement RFC 9457 error translation and field-validation details in `apps/api/src/plugins/problem-details.ts`
-- [ ] T020 [P] Implement TypeBox schema registration and OpenAPI 3.1 generation in `apps/api/src/plugins/openapi.ts`
-- [ ] T021 [P] Implement exact-origin CORS, CSRF validation, security headers, and route limit primitives in `apps/api/src/plugins/security.ts`
-- [ ] T022 Implement the Better Auth PostgreSQL adapter, Argon2id hashing, opaque cookies, and session-cache disabling in `apps/api/src/plugins/auth.ts`
-- [ ] T023 Implement active-user, ownership, and `content_admin` authorization guards in `apps/api/src/plugins/authorization.ts`
-- [ ] T024 [P] Implement a database-backed idempotent job runner with retry metadata in `apps/api/src/plugins/jobs.ts`
-- [ ] T025 [P] Implement the React application shell, providers, route boundaries, title updates, and main-heading focus in `apps/web/src/app/App.tsx`, `apps/web/src/app/router.tsx`, and `apps/web/src/app/providers.tsx`
-- [ ] T026 [P] Implement responsive tokens, visible focus, forced-colors, reduced-motion, and reflow foundations in `apps/web/src/styles/tokens.css` and `apps/web/src/styles/global.css`
-- [ ] T027 [P] Generate the typed API client and implement Problem Details mapping in `packages/api-contract/src/generated/` and `apps/web/src/services/api-client.ts`
-- [ ] T028 Implement PostgreSQL Testcontainers, migrations, cleanup, and deterministic fixture helpers in `apps/api/tests/support/postgres.ts` and `tests/fixtures/factories.ts`
+- [X] T014 Create PostgreSQL extensions, application/migration roles, audit primitives, and migration ledger in `database/migrations/0001_foundation.sql`
+- [X] T015 Implement Kysely connection ownership and the forward-only migration command in `apps/api/src/plugins/database.ts` and `apps/api/src/commands/migrate.ts`
+- [X] T016 [P] Implement strict environment validation with no secret defaults in `apps/api/src/config/environment.ts` and `apps/web/src/app/environment.ts`
+- [X] T017 [P] Implement redacted Pino logging, request IDs, OpenTelemetry bootstrap, and web-vitals hooks in `apps/api/src/plugins/observability.ts` and `apps/web/src/app/observability.ts`
+- [X] T018 Implement Fastify composition, process lifecycle, graceful shutdown, and detail-free health routes in `apps/api/src/app.ts`, `apps/api/src/server.ts`, and `apps/api/src/modules/health/routes.ts`
+- [X] T019 [P] Implement RFC 9457 error translation and field-validation details in `apps/api/src/plugins/problem-details.ts`
+- [X] T020 [P] Implement TypeBox schema registration and OpenAPI 3.1 generation in `apps/api/src/plugins/openapi.ts`
+- [X] T021 [P] Implement exact-origin CORS, CSRF validation, security headers, and route limit primitives in `apps/api/src/plugins/security.ts`
+- [X] T022 Implement the Better Auth PostgreSQL adapter, Argon2id hashing, opaque cookies, and session-cache disabling in `apps/api/src/plugins/auth.ts`
+- [X] T023 Implement active-user, ownership, and `content_admin` authorization guards in `apps/api/src/plugins/authorization.ts`
+- [X] T024 [P] Implement a database-backed idempotent job runner with retry metadata in `apps/api/src/plugins/jobs.ts`
+- [X] T025 [P] Implement the React application shell, providers, route boundaries, title updates, and main-heading focus in `apps/web/src/app/App.tsx`, `apps/web/src/app/router.tsx`, and `apps/web/src/app/providers.tsx`
+- [X] T026 [P] Implement responsive tokens, visible focus, forced-colors, reduced-motion, and reflow foundations in `apps/web/src/styles/tokens.css` and `apps/web/src/styles/global.css`
+- [X] T027 [P] Generate the typed API client and implement Problem Details mapping in `packages/api-contract/src/generated/` and `apps/web/src/services/api-client.ts`
+- [X] T028 Implement PostgreSQL Testcontainers, migrations, cleanup, and deterministic fixture helpers in `apps/api/tests/support/postgres.ts` and `tests/fixtures/factories.ts`
 
 **Checkpoint**: Database, API, auth boundary, security, web shell, generated contract, and test harnesses pass; user stories may begin.
 
@@ -86,28 +86,28 @@ sessions must lose access immediately and the erasure workflow must remove ident
 
 ### Tests for User Story 1
 
-- [ ] T029 [P] [US1] Add contract tests for registration, verification, sessions, resets, current user, profile, and deletion in `apps/api/tests/contract/identity.contract.test.ts`
-- [ ] T030 [P] [US1] Add integration tests for pending activation, one-time tokens, login/logout, reset, and session revocation in `apps/api/tests/integration/identity-lifecycle.test.ts`
-- [ ] T031 [P] [US1] Add integration tests for enumeration resistance, rate limits, CSRF, cookie flags, Argon2id, and log redaction in `apps/api/tests/integration/identity-security.test.ts`
-- [ ] T032 [P] [US1] Add integration tests for profile validation, role immutability, and cross-user ownership denial in `apps/api/tests/integration/profile-ownership.test.ts`
-- [ ] T033 [P] [US1] Add failure-injection, retry, session revocation, 30-day deadline, and anonymous-threshold tests in `apps/api/tests/integration/account-erasure.test.ts`
-- [ ] T034 [P] [US1] Add component tests for accessible registration, login, verification, reset, profile, and deletion forms in `apps/web/tests/identity-profile.test.tsx`
-- [ ] T035 [P] [US1] Add the keyboard-only account activation, profile, recovery, and deletion journey in `tests/e2e/us1-account-profile.spec.ts`
+- [X] T029 [P] [US1] Add contract tests for registration, verification, sessions, resets, current user, profile, and deletion in `apps/api/tests/contract/identity.contract.test.ts`
+- [X] T030 [P] [US1] Add integration tests for pending activation, one-time tokens, login/logout, reset, and session revocation in `apps/api/tests/integration/identity-lifecycle.test.ts`
+- [X] T031 [P] [US1] Add integration tests for enumeration resistance, rate limits, CSRF, cookie flags, Argon2id, and log redaction in `apps/api/tests/integration/identity-security.test.ts`
+- [X] T032 [P] [US1] Add integration tests for profile validation, role immutability, and cross-user ownership denial in `apps/api/tests/integration/profile-ownership.test.ts`
+- [X] T033 [P] [US1] Add failure-injection, retry, session revocation, 30-day deadline, and anonymous-threshold tests in `apps/api/tests/integration/account-erasure.test.ts`
+- [X] T034 [P] [US1] Add component tests for accessible registration, login, verification, reset, profile, and deletion forms in `apps/web/tests/identity-profile.test.tsx`
+- [X] T035 [P] [US1] Add the keyboard-only account activation, profile, recovery, and deletion journey in `tests/e2e/us1-account-profile.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T036 [US1] Create users, auth-owned tables, sessions, tokens, roles, professional roles/profiles, interests, deletion requests, and anonymous metrics in `database/migrations/0002_identity.sql`
-- [ ] T037 [P] [US1] Implement the transactional e-mail port, Mailpit adapter, and verification/reset templates in `apps/api/src/modules/identity/email.ts` and `apps/api/src/modules/identity/templates.ts`
-- [ ] T038 [US1] Implement identity request schemas and persistence queries in `apps/api/src/modules/identity/schemas.ts` and `apps/api/src/modules/identity/repository.ts`
-- [ ] T039 [US1] Implement registration, verification, session, logout, and password-reset policies in `apps/api/src/modules/identity/service.ts` and `apps/api/src/modules/identity/routes.ts`
-- [ ] T040 [US1] Implement profile completion, interests, validation, and ownership-safe routes in `apps/api/src/modules/profiles/repository.ts`, `apps/api/src/modules/profiles/service.ts`, and `apps/api/src/modules/profiles/routes.ts`
-- [ ] T041 [P] [US1] Implement append-only authentication/security audit recording with redaction in `apps/api/src/modules/audit/service.ts`
-- [ ] T042 [US1] Implement atomic deletion-pending transition, session revocation, provider cleanup, retries, and completion tombstones in `apps/api/src/modules/erasure/service.ts` and `apps/api/src/modules/erasure/worker.ts`
-- [ ] T043 [US1] Implement five-contributor suppression and identifier-free metric aggregation in `apps/api/src/modules/erasure/anonymous-metrics.ts`
-- [ ] T044 [P] [US1] Implement registration and login routes with explicit pending/error/success states in `apps/web/src/features/identity/RegisterPage.tsx` and `apps/web/src/features/identity/LoginPage.tsx`
-- [ ] T045 [P] [US1] Implement verification and password-reset routes with one-time-token handling in `apps/web/src/features/identity/VerifyEmailPage.tsx` and `apps/web/src/features/identity/ResetPasswordPage.tsx`
-- [ ] T046 [P] [US1] Implement the accessible professional profile form and completion guidance in `apps/web/src/features/profile/ProfilePage.tsx` and `apps/web/src/features/profile/ProfileForm.tsx`
-- [ ] T047 [P] [US1] Implement recent-auth confirmation, deletion receipt, and forced sign-out UI in `apps/web/src/features/profile/DeleteAccountDialog.tsx`
+- [X] T036 [US1] Create users, auth-owned tables, sessions, tokens, roles, professional roles/profiles, interests, deletion requests, and anonymous metrics in `database/migrations/0002_identity.sql`
+- [X] T037 [P] [US1] Implement the transactional e-mail port, Mailpit adapter, and verification/reset templates in `apps/api/src/modules/identity/email.ts` and `apps/api/src/modules/identity/templates.ts`
+- [X] T038 [US1] Implement identity request schemas and persistence queries in `apps/api/src/modules/identity/schemas.ts` and `apps/api/src/modules/identity/repository.ts`
+- [X] T039 [US1] Implement registration, verification, session, logout, and password-reset policies in `apps/api/src/modules/identity/service.ts` and `apps/api/src/modules/identity/routes.ts`
+- [X] T040 [US1] Implement profile completion, interests, validation, and ownership-safe routes in `apps/api/src/modules/profiles/repository.ts`, `apps/api/src/modules/profiles/service.ts`, and `apps/api/src/modules/profiles/routes.ts`
+- [X] T041 [P] [US1] Implement append-only authentication/security audit recording with redaction in `apps/api/src/modules/audit/service.ts`
+- [X] T042 [US1] Implement atomic deletion-pending transition, session revocation, provider cleanup, retries, and completion tombstones in `apps/api/src/modules/erasure/service.ts` and `apps/api/src/modules/erasure/worker.ts`
+- [X] T043 [US1] Implement five-contributor suppression and identifier-free metric aggregation in `apps/api/src/modules/erasure/anonymous-metrics.ts`
+- [X] T044 [P] [US1] Implement registration and login routes with explicit pending/error/success states in `apps/web/src/features/identity/RegisterPage.tsx` and `apps/web/src/features/identity/LoginPage.tsx`
+- [X] T045 [P] [US1] Implement verification and password-reset routes with one-time-token handling in `apps/web/src/features/identity/VerifyEmailPage.tsx` and `apps/web/src/features/identity/ResetPasswordPage.tsx`
+- [X] T046 [P] [US1] Implement the accessible professional profile form and completion guidance in `apps/web/src/features/profile/ProfilePage.tsx` and `apps/web/src/features/profile/ProfileForm.tsx`
+- [X] T047 [P] [US1] Implement recent-auth confirmation, deletion receipt, and forced sign-out UI in `apps/web/src/features/profile/DeleteAccountDialog.tsx`
 
 **Checkpoint**: User Story 1 is secure, independently usable, and proves SC-001, SC-008, SC-010, and SC-011 behavior.
 
@@ -124,26 +124,26 @@ inspection by keyboard through the textual representation.
 
 ### Tests for User Story 2
 
-- [ ] T048 [P] [US2] Add contract tests for catalog search, categories, skill, trail, and certification details in `apps/api/tests/contract/catalog.contract.test.ts`
-- [ ] T049 [P] [US2] Add PostgreSQL tests for canonical slug uniqueness, revision pointers, FK joins, ordered steps, and exactly-one certification targets in `database/tests/catalog-constraints.integration.test.ts`
-- [ ] T050 [P] [US2] Add integration tests for publication visibility, search/filter pagination, canonical relationships, and inactive-content exclusion in `apps/api/tests/integration/catalog-read.test.ts`
-- [ ] T051 [P] [US2] Add component tests for catalog states, filters, details, semantic map, keyboard controls, and axe in `apps/web/tests/catalog-map.test.tsx`
-- [ ] T052 [P] [US2] Add visitor search and map journeys for desktop, tablet, and mobile in `tests/e2e/us2-catalog-map.spec.ts`
+- [X] T048 [P] [US2] Add contract tests for catalog search, categories, skill, trail, and certification details in `apps/api/tests/contract/catalog.contract.test.ts`
+- [X] T049 [P] [US2] Add PostgreSQL tests for canonical slug uniqueness, revision pointers, FK joins, ordered steps, and exactly-one certification targets in `database/tests/catalog-constraints.integration.test.ts`
+- [X] T050 [P] [US2] Add integration tests for publication visibility, search/filter pagination, canonical relationships, and inactive-content exclusion in `apps/api/tests/integration/catalog-read.test.ts`
+- [X] T051 [P] [US2] Add component tests for catalog states, filters, details, semantic map, keyboard controls, and axe in `apps/web/tests/catalog-map.test.tsx`
+- [X] T052 [P] [US2] Add visitor search and map journeys for desktop, tablet, and mobile in `tests/e2e/us2-catalog-map.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T053 [US2] Create professional roles, category/skill/trail/certification roots, immutable revisions, ordered steps, joins, requirements, and indexes in `database/migrations/0003_catalog.sql`
-- [ ] T054 [US2] Implement catalog database types and root/revision queries in `apps/api/src/modules/catalog/types.ts` and `apps/api/src/modules/catalog/repository.ts`
-- [ ] T055 [US2] Implement cursor search, type/category filters, canonical deduplication, and inactive-content rules in `apps/api/src/modules/catalog/search-service.ts`
-- [ ] T056 [P] [US2] Implement current trail revision, ordered graph, skill, and prerequisite reads in `apps/api/src/modules/catalog/trail-query-service.ts`
-- [ ] T057 [P] [US2] Implement certification, requirement, skill, and related-trail reads in `apps/api/src/modules/catalog/certification-query-service.ts`
-- [ ] T058 [US2] Implement public catalog schemas and routes from OpenAPI in `apps/api/src/modules/catalog/schemas.ts` and `apps/api/src/modules/catalog/routes.ts`
-- [ ] T059 [US2] Create fictitious categories, skills, shared relationships, a five-step trail, certifications, and requirements in `database/seeds/mvp-catalog.ts`
-- [ ] T060 [P] [US2] Implement catalog route loaders and query hooks in `apps/web/src/features/catalog/api.ts` and `apps/web/src/features/catalog/routes.tsx`
-- [ ] T061 [P] [US2] Implement accessible search, type/category filters, pagination, and empty/error states in `apps/web/src/features/catalog/CatalogPage.tsx` and `apps/web/src/features/catalog/CatalogFilters.tsx`
-- [ ] T062 [P] [US2] Implement canonical skill details and the semantic relationship table in `apps/web/src/features/skill-map/SkillDetailPage.tsx` and `apps/web/src/features/skill-map/RelationshipTable.tsx`
-- [ ] T063 [P] [US2] Implement ordered trail details with equivalent textual and visual map controls in `apps/web/src/features/skill-map/TrailDetailPage.tsx` and `apps/web/src/features/skill-map/SkillMap.tsx`
-- [ ] T064 [P] [US2] Implement certification details, issuer, skills, trails, and ordered requirements in `apps/web/src/features/catalog/CertificationDetailPage.tsx`
+- [X] T053 [US2] Create professional roles, category/skill/trail/certification roots, immutable revisions, ordered steps, joins, requirements, and indexes in `database/migrations/0003_catalog.sql`
+- [X] T054 [US2] Implement catalog database types and root/revision queries in `apps/api/src/modules/catalog/types.ts` and `apps/api/src/modules/catalog/repository.ts`
+- [X] T055 [US2] Implement cursor search, type/category filters, canonical deduplication, and inactive-content rules in `apps/api/src/modules/catalog/search-service.ts`
+- [X] T056 [P] [US2] Implement current trail revision, ordered graph, skill, and prerequisite reads in `apps/api/src/modules/catalog/trail-query-service.ts`
+- [X] T057 [P] [US2] Implement certification, requirement, skill, and related-trail reads in `apps/api/src/modules/catalog/certification-query-service.ts`
+- [X] T058 [US2] Implement public catalog schemas and routes from OpenAPI in `apps/api/src/modules/catalog/schemas.ts` and `apps/api/src/modules/catalog/routes.ts`
+- [X] T059 [US2] Create fictitious categories, skills, shared relationships, a five-step trail, certifications, and requirements in `database/seeds/mvp-catalog.ts`
+- [X] T060 [P] [US2] Implement catalog route loaders and query hooks in `apps/web/src/features/catalog/api.ts` and `apps/web/src/features/catalog/routes.tsx`
+- [X] T061 [P] [US2] Implement accessible search, type/category filters, pagination, and empty/error states in `apps/web/src/features/catalog/CatalogPage.tsx` and `apps/web/src/features/catalog/CatalogFilters.tsx`
+- [X] T062 [P] [US2] Implement canonical skill details and the semantic relationship table in `apps/web/src/features/skill-map/SkillDetailPage.tsx` and `apps/web/src/features/skill-map/RelationshipTable.tsx`
+- [X] T063 [P] [US2] Implement ordered trail details with equivalent textual and visual map controls in `apps/web/src/features/skill-map/TrailDetailPage.tsx` and `apps/web/src/features/skill-map/SkillMap.tsx`
+- [X] T064 [P] [US2] Implement certification details, issuer, skills, trails, and ordered requirements in `apps/web/src/features/catalog/CertificationDetailPage.tsx`
 
 **Checkpoint**: User Story 2 works without authentication and proves SC-003, SC-005, and SC-006 for catalog flows.
 
