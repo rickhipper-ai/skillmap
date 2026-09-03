@@ -160,25 +160,25 @@ trail, and verify recalculated progress plus preserved historical revision evide
 
 ### Tests for User Story 3
 
-- [ ] T065 [P] [US3] Add unit tests for prerequisite eligibility and percentage calculation in `apps/api/tests/unit/progress-eligibility.test.ts`
-- [ ] T066 [P] [US3] Add unit tests for deterministic event projection and correction semantics in `apps/api/tests/unit/progress-projector.test.ts`
-- [ ] T067 [P] [US3] Add runtime-role and trigger tests that reject progress event update/delete/truncate in `database/tests/progress-immutability.integration.test.ts`
-- [ ] T068 [P] [US3] Add integration tests for start, transitions, corrections, idempotency, and projection rebuild in `apps/api/tests/integration/progress-history.test.ts`
-- [ ] T069 [P] [US3] Add row-lock and stale-base-version concurrency tests in `apps/api/tests/integration/progress-concurrency.test.ts`
-- [ ] T070 [P] [US3] Add contract tests for start trail, trail progress, and progress events in `apps/api/tests/contract/progress.contract.test.ts`
-- [ ] T071 [P] [US3] Add component tests for progress controls, pending prerequisites, history, conflict review, and catalog-change notices in `apps/web/tests/progress.test.tsx`
-- [ ] T072 [P] [US3] Add the start, progress, correction, and current-publication journey in `tests/e2e/us3-progress.spec.ts`
+- [X] T065 [P] [US3] Add unit tests for prerequisite eligibility and percentage calculation in `apps/api/tests/unit/progress-eligibility.test.ts`
+- [X] T066 [P] [US3] Add unit tests for deterministic event projection and correction semantics in `apps/api/tests/unit/progress-projector.test.ts`
+- [X] T067 [P] [US3] Add runtime-role and trigger tests that reject progress event update/delete/truncate in `database/tests/progress-immutability.integration.test.ts`
+- [X] T068 [P] [US3] Add integration tests for start, transitions, corrections, idempotency, and projection rebuild in `apps/api/tests/integration/progress-history.test.ts`
+- [X] T069 [P] [US3] Add row-lock and stale-base-version concurrency tests in `apps/api/tests/integration/progress-concurrency.test.ts`
+- [X] T070 [P] [US3] Add contract tests for start trail, trail progress, and progress events in `apps/api/tests/contract/progress.contract.test.ts`
+- [X] T071 [P] [US3] Add component tests for progress controls, pending prerequisites, history, conflict review, and catalog-change notices in `apps/web/tests/progress.test.tsx`
+- [X] T072 [P] [US3] Add the start, progress, correction, and current-publication journey in `tests/e2e/us3-progress.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T073 [US3] Create user trail/step projections, append-only events, idempotency, privileges, triggers, and stream indexes in `database/migrations/0004_progress.sql`
-- [ ] T074 [P] [US3] Implement pure transition, eligibility, percentage, and projection functions in `apps/api/src/modules/progress/domain.ts` and `apps/api/src/modules/progress/projector.ts`
-- [ ] T075 [US3] Implement stream locking, event append, idempotent lookup, and projection persistence in `apps/api/src/modules/progress/repository.ts`
-- [ ] T076 [US3] Implement start, prerequisite validation, correction, stale-command review, and current-revision recalculation in `apps/api/src/modules/progress/service.ts`
-- [ ] T077 [US3] Implement progress schemas and OpenAPI routes in `apps/api/src/modules/progress/schemas.ts` and `apps/api/src/modules/progress/routes.ts`
-- [ ] T078 [P] [US3] Implement typed trail-start and progress command hooks with idempotency keys in `apps/web/src/features/progress/api.ts`
-- [ ] T079 [P] [US3] Implement progress percentage, eligibility, controls, and field/status announcements in `apps/web/src/features/progress/TrailProgressPage.tsx` and `apps/web/src/features/progress/ProgressControls.tsx`
-- [ ] T080 [P] [US3] Implement chronological history, correction references, review warnings, and publication-change notices in `apps/web/src/features/progress/ProgressHistory.tsx` and `apps/web/src/features/progress/CatalogChangeNotice.tsx`
+- [X] T073 [US3] Create user trail/step projections, append-only events, idempotency, privileges, triggers, and stream indexes in `database/migrations/0004_progress.sql`
+- [X] T074 [P] [US3] Implement pure transition, eligibility, percentage, and projection functions in `apps/api/src/modules/progress/domain.ts` and `apps/api/src/modules/progress/projector.ts`
+- [X] T075 [US3] Implement stream locking, event append, idempotent lookup, and projection persistence in `apps/api/src/modules/progress/repository.ts`
+- [X] T076 [US3] Implement start, prerequisite validation, correction, stale-command review, and current-revision recalculation in `apps/api/src/modules/progress/service.ts`
+- [X] T077 [US3] Implement progress schemas and OpenAPI routes in `apps/api/src/modules/progress/schemas.ts` and `apps/api/src/modules/progress/routes.ts`
+- [X] T078 [P] [US3] Implement typed trail-start and progress command hooks with idempotency keys in `apps/web/src/features/progress/api.ts`
+- [X] T079 [P] [US3] Implement progress percentage, eligibility, controls, and field/status announcements in `apps/web/src/features/progress/TrailProgressPage.tsx` and `apps/web/src/features/progress/ProgressControls.tsx`
+- [X] T080 [P] [US3] Implement chronological history, correction references, review warnings, and publication-change notices in `apps/web/src/features/progress/ProgressHistory.tsx` and `apps/web/src/features/progress/CatalogChangeNotice.tsx`
 
 **Checkpoint**: User Story 3 proves append-only history, current state, conflict handling, and SC-004.
 

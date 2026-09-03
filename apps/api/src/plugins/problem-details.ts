@@ -5,19 +5,22 @@ interface ProblemOptions {
   title: string;
   code: string;
   detail?: string;
+  extensions?: Record<string, unknown>;
 }
 
 export class HttpProblem extends Error {
   readonly status: number;
   readonly title: string;
   readonly code: string;
+  readonly extensions: Record<string, unknown>;
 
-  constructor({ status, title, code, detail }: ProblemOptions) {
+  constructor({ status, title, code, detail, extensions = {} }: ProblemOptions) {
     super(detail ?? title);
     this.name = 'HttpProblem';
     this.status = status;
     this.title = title;
     this.code = code;
+    this.extensions = extensions;
   }
 }
 
@@ -77,6 +80,7 @@ export function registerProblemDetails(app: FastifyInstance): void {
         code,
         instance: instanceFor(request),
         requestId: request.id,
+        ...(error instanceof HttpProblem ? error.extensions : {}),
         ...(isValidation
           ? {
               errors: validation.map((item) => ({

@@ -145,6 +145,8 @@ export type TrailProgress = {
         state: 'not_started' | 'in_progress' | 'completed';
         occurredAt: string;
         source: 'user' | 'admin_correction' | 'system';
+        supersedesEventId?: number;
+        observedRevisionId: string;
     }>;
 };
 

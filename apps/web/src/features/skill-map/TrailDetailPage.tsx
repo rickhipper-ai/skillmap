@@ -14,6 +14,11 @@ export function TrailDetailPage() {
       <h1 tabIndex={-1}>{trail.data.title}</h1>
       {trail.data.category && <p className="category-label">{trail.data.category.name}</p>}
       <p className="detail-summary">{trail.data.summary}</p>
+      <p>
+        <Link className="primary-link" to={`/progresso/trilhas/${trail.data.id}`}>
+          Iniciar ou acompanhar progresso
+        </Link>
+      </p>
       <h2>Etapas da trilha</h2>
       <SkillMap steps={trail.data.steps} />
       <h2>Certificacoes relacionadas</h2>

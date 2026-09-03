@@ -16,6 +16,7 @@ import { CertificationDetailPage } from '../features/catalog/CertificationDetail
 import { catalogRouteLoader, detailRouteLoader } from '../features/catalog/routes';
 import { SkillDetailPage } from '../features/skill-map/SkillDetailPage';
 import { TrailDetailPage } from '../features/skill-map/TrailDetailPage';
+import { TrailProgressPage } from '../features/progress/TrailProgressPage';
 
 interface RouterOptions {
   initialEntries?: string[];
@@ -98,6 +99,7 @@ const routes = [
       { path: 'verificar-email', element: <VerifyEmailPage /> },
       { path: 'recuperar-acesso', element: <ResetPasswordPage /> },
       { path: 'perfil', element: <ProfilePage /> },
+      { path: 'progresso/trilhas/:trailId', element: <TrailProgressPage /> },
       { path: '*', element: <RouteErrorPage /> },
     ],
   },

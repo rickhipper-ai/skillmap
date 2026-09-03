@@ -967,13 +967,15 @@ components:
           type: array
           items:
             type: object
-            required: [eventId, stepId, state, occurredAt, source]
+            required: [eventId, stepId, state, occurredAt, source, observedRevisionId]
             properties:
               eventId: { type: integer, minimum: 1 }
               stepId: { type: string, format: uuid }
               state: { type: string, enum: [not_started, in_progress, completed] }
               occurredAt: { type: string, format: date-time }
               source: { type: string, enum: [user, admin_correction, system] }
+              supersedesEventId: { type: integer, minimum: 1 }
+              observedRevisionId: { type: string, format: uuid }
     Dashboard:
       type: object
       required: [activeTrails, certificationRecords, achievements, recommendations]

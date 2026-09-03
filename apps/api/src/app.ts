@@ -22,6 +22,9 @@ import { registerHealthRoutes } from './modules/health/routes.js';
 import { ProfileRepository } from './modules/profiles/repository.js';
 import { registerProfileRoutes } from './modules/profiles/routes.js';
 import { ProfileService } from './modules/profiles/service.js';
+import { ProgressRepository } from './modules/progress/repository.js';
+import { registerProgressRoutes } from './modules/progress/routes.js';
+import { ProgressService } from './modules/progress/service.js';
 import { createAuth } from './plugins/auth.js';
 import { registerAuthorization } from './plugins/authorization.js';
 import { createDatabase, type OwnedDatabase } from './plugins/database.js';
@@ -73,6 +76,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   let catalogSearch: CatalogSearchService | undefined;
   let trailQueries: TrailQueryService | undefined;
   let certificationQueries: CertificationQueryService | undefined;
+  let progress: ProgressService | undefined;
   if (database) {
     const audit = new AuditService(database.db);
     const identityRepository = new IdentityRepository(database.db);
@@ -96,6 +100,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     catalogSearch = new CatalogSearchService(catalogRepository);
     trailQueries = new TrailQueryService(catalogRepository);
     certificationQueries = new CertificationQueryService(catalogRepository);
+    progress = new ProgressService(new ProgressRepository(database.db));
     const worker = new AccountErasureWorker(
       database.db,
       options.providerCleanup ?? new NoopProviderCleanup(),
@@ -140,6 +145,7 @@ export function buildApp(options: BuildAppOptions = {}) {
       trails: trailQueries,
       certifications: certificationQueries,
     });
+    registerProgressRoutes(api, progress);
     api.get('/', async () => ({ name: 'SKILL MAPS API', status: 'setup' }));
   });
 

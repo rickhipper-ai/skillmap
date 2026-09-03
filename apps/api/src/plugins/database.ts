@@ -50,6 +50,9 @@ export interface FoundationDatabase {
   certification_revision_skills: Record<string, unknown>;
   certification_revision_trails: Record<string, unknown>;
   certification_requirements: Record<string, unknown>;
+  user_trail_states: Record<string, unknown>;
+  user_step_states: Record<string, unknown>;
+  progress_events: Record<string, unknown>;
   profile_interest_categories: Record<string, unknown>;
   profile_interest_skills: Record<string, unknown>;
   account_deletion_requests: Record<string, unknown>;
