@@ -10,12 +10,16 @@ interface ClaimedJob {
   payload: unknown;
   attempts: number;
   max_attempts: number;
+  status: 'pending' | 'retry' | 'running';
 }
 
 export class JobRunner {
   private readonly handlers = new Map<string, JobHandler>();
 
-  constructor(private readonly db: Kysely<FoundationDatabase>) {}
+  constructor(
+    private readonly db: Kysely<FoundationDatabase>,
+    private readonly leaseTimeoutMillis = 5 * 60_000,
+  ) {}
 
   register(jobType: string, handler: JobHandler): void {
     if (this.handlers.has(jobType)) throw new Error(`Handler already registered for ${jobType}`);
@@ -38,9 +42,10 @@ export class JobRunner {
   async runOne(): Promise<boolean> {
     const claimed = await this.db.transaction().execute(async (transaction) => {
       const result = await sql<ClaimedJob>`
-        SELECT id, job_type, payload, attempts, max_attempts
+        SELECT id, job_type, payload, attempts, max_attempts, status
         FROM background_jobs
-        WHERE status IN ('pending', 'retry') AND available_at <= now()
+        WHERE (status IN ('pending', 'retry') AND available_at <= now())
+           OR (status = 'running' AND locked_at <= now() - (${this.leaseTimeoutMillis} * interval '1 millisecond'))
         ORDER BY available_at, created_at
         FOR UPDATE SKIP LOCKED
         LIMIT 1
@@ -49,6 +54,13 @@ export class JobRunner {
       if (!job) return undefined;
 
       const attempt = job.attempts + 1;
+      if (job.status === 'running') {
+        await sql`
+          UPDATE background_job_attempts
+          SET outcome = 'retry', error_code = 'worker_lease_expired', finished_at = now()
+          WHERE job_id = ${job.id} AND attempt_number = ${job.attempts} AND finished_at IS NULL
+        `.execute(transaction);
+      }
       await sql`
         UPDATE background_jobs
         SET status = 'running', attempts = ${attempt}, locked_at = now(), updated_at = now()

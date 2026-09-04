@@ -80,6 +80,7 @@ export class ProfileRepository {
           current_role_id = EXCLUDED.current_role_id,
           desired_role_id = EXCLUDED.desired_role_id,
           experience_level = EXCLUDED.experience_level,
+          profile_version = professional_profiles.profile_version + 1,
           updated_at = now()
       `.execute(transaction);
       await sql`DELETE FROM profile_interest_categories WHERE user_id = ${userId}`.execute(

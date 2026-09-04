@@ -50,9 +50,29 @@ export interface FoundationDatabase {
   certification_revision_skills: Record<string, unknown>;
   certification_revision_trails: Record<string, unknown>;
   certification_requirements: Record<string, unknown>;
+  user_certification_records: Record<string, unknown>;
+  certification_record_commands: Record<string, unknown>;
+  achievements: Record<string, unknown>;
+  achievement_revisions: Record<string, unknown>;
+  user_achievement_awards: Record<string, unknown>;
+  catalog_publications: Record<string, unknown>;
+  category_drafts: Record<string, unknown>;
+  skill_drafts: Record<string, unknown>;
+  trail_drafts: Record<string, unknown>;
+  trail_draft_steps: Record<string, unknown>;
+  trail_draft_step_skills: Record<string, unknown>;
+  trail_draft_step_prerequisites: Record<string, unknown>;
+  trail_draft_target_roles: Record<string, unknown>;
+  certification_drafts: Record<string, unknown>;
+  certification_draft_skills: Record<string, unknown>;
+  certification_draft_trails: Record<string, unknown>;
+  certification_draft_requirements: Record<string, unknown>;
+  achievement_drafts: Record<string, unknown>;
   user_trail_states: Record<string, unknown>;
   user_step_states: Record<string, unknown>;
   progress_events: Record<string, unknown>;
+  recommendation_rule_sets: Record<string, unknown>;
+  learning_recommendations: Record<string, unknown>;
   profile_interest_categories: Record<string, unknown>;
   profile_interest_skills: Record<string, unknown>;
   account_deletion_requests: Record<string, unknown>;
@@ -65,13 +85,26 @@ export interface OwnedDatabase {
   destroy(): Promise<void>;
 }
 
-export function createDatabase(connectionString: string): OwnedDatabase {
+export interface DatabasePoolOptions {
+  connectionTimeoutMillis?: number | undefined;
+  idleTimeoutMillis?: number | undefined;
+  max?: number | undefined;
+  queryTimeoutMillis?: number | undefined;
+}
+
+export function createDatabase(
+  connectionString: string,
+  options: DatabasePoolOptions = {},
+): OwnedDatabase {
+  const queryTimeoutMillis = options.queryTimeoutMillis ?? 10_000;
   const pool = new Pool({
     connectionString,
     options: '-c role=skill_maps_runtime',
-    connectionTimeoutMillis: 5_000,
-    idleTimeoutMillis: 30_000,
-    max: 10,
+    connectionTimeoutMillis: options.connectionTimeoutMillis ?? 5_000,
+    idleTimeoutMillis: options.idleTimeoutMillis ?? 30_000,
+    max: options.max ?? 10,
+    query_timeout: queryTimeoutMillis,
+    statement_timeout: queryTimeoutMillis,
   });
   const db = new Kysely<FoundationDatabase>({ dialect: new PostgresDialect({ pool }) });
 

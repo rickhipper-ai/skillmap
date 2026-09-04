@@ -16,6 +16,12 @@ export function CertificationDetailPage() {
         Emitida por <strong>{data.issuer}</strong>
       </p>
       <p className="detail-summary">{data.summary}</p>
+      <p>
+        <Link className="primary-link" to={`/credenciais?certificationId=${data.id}`}>
+          Registrar como obtida
+        </Link>
+      </p>
+      <p>O registro no SKILL MAPS sera autodeclarado, sem verificacao oficial pelo emissor.</p>
       <h2>Requisitos</h2>
       {data.requirements.length ? (
         <ol className="requirements">

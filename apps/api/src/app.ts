@@ -8,6 +8,19 @@ import { registerCatalogRoutes } from './modules/catalog/routes.js';
 import { CatalogSearchService } from './modules/catalog/search-service.js';
 import { TrailQueryService } from './modules/catalog/trail-query-service.js';
 import { CertificationQueryService } from './modules/catalog/certification-query-service.js';
+import { AchievementService } from './modules/achievements/service.js';
+import { createAchievementSubscribers } from './modules/achievements/subscribers.js';
+import { registerAchievementRoutes } from './modules/achievements/routes.js';
+import { CertificationRepository } from './modules/credentials/repository.js';
+import { registerCredentialRoutes } from './modules/credentials/routes.js';
+import { CertificationService } from './modules/credentials/service.js';
+import { AdministrationRepository } from './modules/administration/repository.js';
+import { PublicationService } from './modules/administration/publication-service.js';
+import { LifecycleService } from './modules/administration/lifecycle-service.js';
+import { registerAdministrationSchemas } from './modules/administration/schemas.js';
+import { registerCategorySkillRoutes } from './modules/administration/category-skill-routes.js';
+import { registerTrailRoutes } from './modules/administration/trail-routes.js';
+import { registerCredentialAdministrationRoutes } from './modules/administration/credential-routes.js';
 import { MailpitEmailAdapter, NullEmailAdapter, type EmailPort } from './modules/identity/email.js';
 import { IdentityRepository } from './modules/identity/repository.js';
 import { registerIdentityRoutes } from './modules/identity/routes.js';
@@ -25,6 +38,8 @@ import { ProfileService } from './modules/profiles/service.js';
 import { ProgressRepository } from './modules/progress/repository.js';
 import { registerProgressRoutes } from './modules/progress/routes.js';
 import { ProgressService } from './modules/progress/service.js';
+import { DashboardService } from './modules/recommendations/dashboard-service.js';
+import { registerRecommendationRoutes } from './modules/recommendations/routes.js';
 import { createAuth } from './plugins/auth.js';
 import { registerAuthorization } from './plugins/authorization.js';
 import { createDatabase, type OwnedDatabase } from './plugins/database.js';
@@ -35,7 +50,20 @@ import { registerProblemDetails } from './plugins/problem-details.js';
 import { registerSecurity, registerSecurityRoutes } from './plugins/security.js';
 
 type AppEnvironment = Pick<Environment, 'nodeEnv' | 'host' | 'port' | 'webOrigin'> &
-  Partial<Pick<Environment, 'databaseUrl' | 'authSecret' | 'smtpHost' | 'smtpPort' | 'emailFrom'>>;
+  Partial<
+    Pick<
+      Environment,
+      | 'databaseUrl'
+      | 'databaseConnectionTimeoutMs'
+      | 'databaseQueryTimeoutMs'
+      | 'databasePoolMax'
+      | 'jobPollIntervalMs'
+      | 'authSecret'
+      | 'smtpHost'
+      | 'smtpPort'
+      | 'emailFrom'
+    >
+  >;
 
 interface BuildAppOptions {
   environment?: AppEnvironment;
@@ -55,7 +83,13 @@ export function buildApp(options: BuildAppOptions = {}) {
   const environment = options.environment ?? testEnvironment;
   const database =
     options.database ??
-    (environment.databaseUrl ? createDatabase(environment.databaseUrl) : undefined);
+    (environment.databaseUrl
+      ? createDatabase(environment.databaseUrl, {
+          connectionTimeoutMillis: environment.databaseConnectionTimeoutMs,
+          queryTimeoutMillis: environment.databaseQueryTimeoutMs,
+          max: environment.databasePoolMax,
+        })
+      : undefined);
   const app = Fastify({
     logger: environment.nodeEnv === 'test' ? false : createLoggerOptions(),
     genReqId: (request) => createRequestId(request.headers['x-request-id'] as string | undefined),
@@ -77,8 +111,15 @@ export function buildApp(options: BuildAppOptions = {}) {
   let trailQueries: TrailQueryService | undefined;
   let certificationQueries: CertificationQueryService | undefined;
   let progress: ProgressService | undefined;
+  let dashboard: DashboardService | undefined;
+  let credentialRecords: CertificationService | undefined;
+  let achievements: AchievementService | undefined;
+  let audit: AuditService | undefined;
+  let administrationRepository: AdministrationRepository | undefined;
+  let publication: PublicationService | undefined;
+  let lifecycle: LifecycleService | undefined;
   if (database) {
-    const audit = new AuditService(database.db);
+    audit = new AuditService(database.db);
     const identityRepository = new IdentityRepository(database.db);
     const email =
       options.email ??
@@ -100,7 +141,23 @@ export function buildApp(options: BuildAppOptions = {}) {
     catalogSearch = new CatalogSearchService(catalogRepository);
     trailQueries = new TrailQueryService(catalogRepository);
     certificationQueries = new CertificationQueryService(catalogRepository);
-    progress = new ProgressService(new ProgressRepository(database.db));
+    achievements = new AchievementService(database.db);
+    const achievementSubscribers = createAchievementSubscribers(achievements);
+    credentialRecords = new CertificationService(
+      new CertificationRepository(database.db),
+      achievementSubscribers.onCertificationRecorded,
+    );
+    progress = new ProgressService(
+      new ProgressRepository(database.db),
+      achievementSubscribers.onProgressEvent,
+    );
+    dashboard = new DashboardService(database.db, {
+      listCertificationRecords: (userId) => credentialRecords!.list(userId),
+      listAchievementAwards: (userId) => achievements!.list(userId),
+    });
+    administrationRepository = new AdministrationRepository(database.db);
+    publication = new PublicationService(administrationRepository);
+    lifecycle = new LifecycleService(administrationRepository);
     const worker = new AccountErasureWorker(
       database.db,
       options.providerCleanup ?? new NoopProviderCleanup(),
@@ -122,6 +179,7 @@ export function buildApp(options: BuildAppOptions = {}) {
 
   app.register(async (api) => {
     await registerOpenApi(api);
+    registerAdministrationSchemas(api);
     registerSecurityRoutes(api);
     registerHealthRoutes(api, {
       async ready() {
@@ -146,10 +204,45 @@ export function buildApp(options: BuildAppOptions = {}) {
       certifications: certificationQueries,
     });
     registerProgressRoutes(api, progress);
+    registerRecommendationRoutes(api, dashboard);
+    registerCredentialRoutes(api, credentialRecords);
+    registerAchievementRoutes(api, achievements);
+    const administration = {
+      repository: administrationRepository,
+      publication,
+      lifecycle,
+      audit,
+    };
+    registerCategorySkillRoutes(api, administration);
+    registerTrailRoutes(api, administration);
+    registerCredentialAdministrationRoutes(api, administration);
     api.get('/', async () => ({ name: 'SKILL MAPS API', status: 'setup' }));
   });
 
   if (database) {
+    let jobTimer: NodeJS.Timeout | undefined;
+    let activeJobRun: Promise<boolean> | undefined;
+    if (environment.nodeEnv !== 'test') {
+      app.addHook('onReady', async () => {
+        jobTimer = setInterval(() => {
+          if (activeJobRun) return;
+          activeJobRun = jobs!
+            .runOne()
+            .catch(() => {
+              app.log.error({ errorCode: 'BACKGROUND_JOB_POLL_FAILED' }, 'Background job failed');
+              return false;
+            })
+            .finally(() => {
+              activeJobRun = undefined;
+            });
+        }, environment.jobPollIntervalMs ?? 1_000);
+        jobTimer.unref();
+      });
+    }
+    app.addHook('onClose', async () => {
+      if (jobTimer) clearInterval(jobTimer);
+      await activeJobRun;
+    });
     app.addHook('onClose', async () => database.destroy());
   }
 

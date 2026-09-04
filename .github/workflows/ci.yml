@@ -13,14 +13,45 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
       - run: corepack enable
       - run: corepack install
       - run: pnpm install --frozen-lockfile
       - run: pnpm contract:generate
+      - name: Reject generated client drift
+        run: git diff --exit-code -- packages/api-contract/openapi.yaml packages/api-contract/src/generated
+      - name: Reject incompatible OpenAPI changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if ! git cat-file -e "$BASE_SHA:packages/api-contract/openapi.yaml"; then
+            echo "No base OpenAPI contract exists; treating this as the initial contract."
+            exit 0
+          fi
+          git show "$BASE_SHA:packages/api-contract/openapi.yaml" > "$RUNNER_TEMP/base-openapi.yaml"
+          cp packages/api-contract/openapi.yaml "$RUNNER_TEMP/current-openapi.yaml"
+          docker run --rm --volume "$RUNNER_TEMP:/specs:ro" \
+            tufin/oasdiff@sha256:889d1f12b3b5efef41b741ddfea8c0dc06c7d6a5ff2ef9bdb31f5db3d39c54df \
+            breaking /specs/base-openapi.yaml /specs/current-openapi.yaml
       - run: pnpm run ci
         env:
           SKILL_MAPS_DATABASE_TESTS: '1'
+
+  accessibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: corepack install
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm test:a11y

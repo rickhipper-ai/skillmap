@@ -9,6 +9,7 @@ import type { FoundationDatabase, OwnedDatabase } from '../../src/plugins/databa
 
 export interface PostgresContext {
   admin: Pool;
+  connectionString: string;
   runtime: PoolClient;
   database: OwnedDatabase;
 }
@@ -35,6 +36,7 @@ export async function withPostgres(
     await runtime.query('SET ROLE skill_maps_runtime');
     await run({
       admin,
+      connectionString: container.getConnectionUri(),
       runtime,
       database: { db, pool: admin, async destroy() {} },
     });

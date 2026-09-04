@@ -8,10 +8,16 @@ import {
 } from './domain.js';
 import {
   ProgressRepository,
+  type ProgressDatabase,
   type StoredProgressEvent,
   type StoredTrailState,
   type TrailPublication,
 } from './repository.js';
+
+export type ProgressEventSubscriber = (
+  event: { userId: string; eventId: number },
+  executor?: ProgressDatabase,
+) => Promise<void>;
 
 export interface ProgressCommand {
   state: StepState;
@@ -53,7 +59,10 @@ export interface ProgressCommandResult {
 }
 
 export class ProgressService {
-  constructor(private readonly repository: ProgressRepository) {}
+  constructor(
+    private readonly repository: ProgressRepository,
+    private readonly subscriber?: ProgressEventSubscriber,
+  ) {}
 
   async start(userId: string, trailId: string, commandId: string): Promise<TrailProgress> {
     try {
@@ -190,6 +199,10 @@ export class ProgressService {
         reviewRequired,
         activityAt: event.occurredAt,
       });
+      await this.subscriber?.(
+        { userId: event.userId, eventId: event.eventId },
+        repository.executor,
+      );
       const updatedState: StoredTrailState = {
         ...state,
         status: trailStatus(trail.steps, states),
@@ -197,6 +210,7 @@ export class ProgressService {
         lastSeenRevisionId: trail.revisionId,
         lastActivityAt: event.occurredAt,
         reviewRequired,
+        catalogChangePending: false,
       };
       const current = await this.current(repository, updatedState, trail, false);
       return commandResult(event, current);
@@ -212,7 +226,8 @@ export class ProgressService {
     const states = await repository.getStepStates(state.userId, state.trailId);
     const events = await repository.getEvents(state.userId, state.trailId);
     const status = trailStatus(trail.steps, states);
-    const catalogChanged = state.lastSeenRevisionId !== trail.revisionId;
+    const catalogChanged =
+      state.catalogChangePending || state.lastSeenRevisionId !== trail.revisionId;
     if (persistRecalculation) {
       await repository.updateTrailProjection({
         userId: state.userId,

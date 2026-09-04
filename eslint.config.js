@@ -23,4 +23,19 @@ export default defineConfig(
       },
     },
   },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['tests/load/**/*.js'],
+    languageOptions: {
+      globals: {
+        __ENV: 'readonly',
+        __VU: 'readonly',
+        open: 'readonly',
+        URL: 'readonly',
+      },
+    },
+  },
 );

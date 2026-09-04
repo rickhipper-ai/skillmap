@@ -9,7 +9,7 @@ import {
 } from './domain.js';
 import { projectProgressEvents } from './projector.js';
 
-type DatabaseExecutor = Kysely<FoundationDatabase> | Transaction<FoundationDatabase>;
+export type ProgressDatabase = Kysely<FoundationDatabase> | Transaction<FoundationDatabase>;
 
 export interface TrailPublication {
   trailId: string;
@@ -26,6 +26,7 @@ export interface StoredTrailState {
   lastActivityAt: Date;
   lastSeenRevisionId: string;
   reviewRequired: boolean;
+  catalogChangePending: boolean;
   startCommandId: string;
 }
 
@@ -61,6 +62,7 @@ interface TrailStateRow {
   last_activity_at: Date;
   last_seen_revision_id: string;
   review_required: boolean;
+  catalog_change_pending: boolean;
   start_command_id: string;
 }
 
@@ -81,13 +83,13 @@ interface EventRow {
 
 export class ProgressRepository {
   constructor(
-    private readonly database: DatabaseExecutor,
+    readonly executor: ProgressDatabase,
     private readonly transactional = false,
   ) {}
 
   transaction<T>(run: (repository: ProgressRepository) => Promise<T>): Promise<T> {
     if (this.transactional) return run(this);
-    return this.database
+    return this.executor
       .transaction()
       .execute((transaction) => run(new ProgressRepository(transaction, true)));
   }
@@ -113,7 +115,7 @@ export class ProgressRepository {
       GROUP BY trail.id, trail.published_revision_id, revision_step.step_id,
                revision_step.position, revision_step.required
       ORDER BY revision_step.position
-    `.execute(this.database);
+    `.execute(this.executor);
     if (!result.rows[0]) return null;
     return {
       trailId: result.rows[0].trail_id,
@@ -138,7 +140,7 @@ export class ProgressRepository {
       VALUES (${userId}::uuid, ${trail.trailId}::uuid, 'in_progress', 0, now(), now(),
               ${trail.revisionId}::uuid, false, ${commandId}::uuid)
       ON CONFLICT (user_id, trail_id) DO NOTHING
-    `.execute(this.database);
+    `.execute(this.executor);
   }
 
   async getTrailState(
@@ -148,18 +150,18 @@ export class ProgressRepository {
   ): Promise<StoredTrailState | null> {
     const result = await sql<TrailStateRow>`
       SELECT user_id, trail_id, status, current_stream_version, started_at, last_activity_at,
-             last_seen_revision_id, review_required, start_command_id
+             last_seen_revision_id, review_required, catalog_change_pending, start_command_id
       FROM user_trail_states
       WHERE user_id = ${userId}::uuid AND trail_id = ${trailId}::uuid
       ${lock ? sql`FOR UPDATE` : sql``}
-    `.execute(this.database);
+    `.execute(this.executor);
     return result.rows[0] ? mapTrailState(result.rows[0]) : null;
   }
 
   async findStartCommand(commandId: string): Promise<{ userId: string; trailId: string } | null> {
     const result = await sql<{ user_id: string; trail_id: string }>`
       SELECT user_id, trail_id FROM user_trail_states WHERE start_command_id = ${commandId}::uuid
-    `.execute(this.database);
+    `.execute(this.executor);
     const row = result.rows[0];
     return row ? { userId: row.user_id, trailId: row.trail_id } : null;
   }
@@ -167,7 +169,7 @@ export class ProgressRepository {
   async findCommand(commandId: string): Promise<StoredProgressEvent | null> {
     const result = await sql<EventRow>`
       SELECT * FROM progress_events WHERE command_id = ${commandId}::uuid
-    `.execute(this.database);
+    `.execute(this.executor);
     return result.rows[0] ? mapEvent(result.rows[0]) : null;
   }
 
@@ -181,7 +183,7 @@ export class ProgressRepository {
       SELECT * FROM progress_events
       WHERE id = ${eventId} AND user_id = ${userId}::uuid AND trail_id = ${trailId}::uuid
         AND step_id = ${stepId}::uuid
-    `.execute(this.database);
+    `.execute(this.executor);
     return result.rows[0] ? mapEvent(result.rows[0]) : null;
   }
 
@@ -207,7 +209,7 @@ export class ProgressRepository {
               ${input.baseStreamVersion}, ${input.streamVersion},
               ${input.supersedesEventId ?? null})
       RETURNING *
-    `.execute(this.database);
+    `.execute(this.executor);
     return mapEvent(result.rows[0]!);
   }
 
@@ -221,14 +223,14 @@ export class ProgressRepository {
       SET current_state = EXCLUDED.current_state,
           latest_event_id = EXCLUDED.latest_event_id,
           updated_at = EXCLUDED.updated_at
-    `.execute(this.database);
+    `.execute(this.executor);
   }
 
   async getStepStates(userId: string, trailId: string): Promise<Map<string, StepState>> {
     const result = await sql<{ step_id: string; current_state: StepState }>`
       SELECT step_id, current_state FROM user_step_states
       WHERE user_id = ${userId}::uuid AND trail_id = ${trailId}::uuid
-    `.execute(this.database);
+    `.execute(this.executor);
     return new Map(result.rows.map((row) => [row.step_id, row.current_state]));
   }
 
@@ -237,7 +239,7 @@ export class ProgressRepository {
       SELECT * FROM progress_events
       WHERE user_id = ${userId}::uuid AND trail_id = ${trailId}::uuid
       ORDER BY stream_version, id
-    `.execute(this.database);
+    `.execute(this.executor);
     return result.rows.map(mapEvent);
   }
 
@@ -256,9 +258,10 @@ export class ProgressRepository {
           current_stream_version = ${input.streamVersion},
           last_seen_revision_id = ${input.revisionId}::uuid,
           review_required = ${input.reviewRequired},
+          catalog_change_pending = false,
           last_activity_at = ${input.activityAt ?? sql.ref('last_activity_at')}
       WHERE user_id = ${input.userId}::uuid AND trail_id = ${input.trailId}::uuid
-    `.execute(this.database);
+    `.execute(this.executor);
   }
 
   async rebuild(userId: string, trailId: string): Promise<void> {
@@ -272,7 +275,7 @@ export class ProgressRepository {
       await sql`
         DELETE FROM user_step_states
         WHERE user_id = ${userId}::uuid AND trail_id = ${trailId}::uuid
-      `.execute(repository.database);
+      `.execute(repository.executor);
       for (const projected of projection.stepStates.values()) {
         const event = events.find((candidate) => candidate.eventId === projected.latestEventId)!;
         await repository.upsertStepState(event);
@@ -304,6 +307,7 @@ function mapTrailState(row: TrailStateRow): StoredTrailState {
     lastActivityAt: row.last_activity_at,
     lastSeenRevisionId: row.last_seen_revision_id,
     reviewRequired: row.review_required,
+    catalogChangePending: row.catalog_change_pending,
     startCommandId: row.start_command_id,
   };
 }

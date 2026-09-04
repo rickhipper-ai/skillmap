@@ -195,20 +195,20 @@ empty states when profile or catalog data cannot produce a recommendation.
 
 ### Tests for User Story 4
 
-- [ ] T081 [P] [US4] Add unit tests for rule scoring, stable tie-breaking, count limits, and reason evidence in `apps/api/tests/unit/recommendation-engine.test.ts`
-- [ ] T082 [P] [US4] Add integration tests for dashboard aggregation and versioned recommendation inputs in `apps/api/tests/integration/dashboard.test.ts`
-- [ ] T083 [P] [US4] Add contract tests for dashboard summaries and recommendation schemas in `apps/api/tests/contract/dashboard.contract.test.ts`
-- [ ] T084 [P] [US4] Add component tests for progress cards, primary/alternative recommendations, reasons, and empty states in `apps/web/tests/dashboard.test.tsx`
-- [ ] T085 [P] [US4] Add active-trail and profile-based recommendation journeys in `tests/e2e/us4-dashboard.spec.ts`
+- [X] T081 [P] [US4] Add unit tests for rule scoring, stable tie-breaking, count limits, and reason evidence in `apps/api/tests/unit/recommendation-engine.test.ts`
+- [X] T082 [P] [US4] Add integration tests for dashboard aggregation and versioned recommendation inputs in `apps/api/tests/integration/dashboard.test.ts`
+- [X] T083 [P] [US4] Add contract tests for dashboard summaries and recommendation schemas in `apps/api/tests/contract/dashboard.contract.test.ts`
+- [X] T084 [P] [US4] Add component tests for progress cards, primary/alternative recommendations, reasons, and empty states in `apps/web/tests/dashboard.test.tsx`
+- [X] T085 [P] [US4] Add active-trail and profile-based recommendation journeys in `tests/e2e/us4-dashboard.spec.ts`
 
 ### Implementation for User Story 4
 
-- [ ] T086 [US4] Create recommendation rule sets, snapshots, reason evidence, and version indexes in `database/migrations/0005_recommendations.sql`
-- [ ] T087 [US4] Implement deterministic rule evaluation, stable ties, and structured explanations in `apps/api/src/modules/recommendations/engine.ts`
-- [ ] T088 [US4] Implement dashboard aggregation across profile, progress, credentials, achievements, and recommendations in `apps/api/src/modules/recommendations/dashboard-service.ts`
-- [ ] T089 [US4] Implement the authenticated dashboard schema and route in `apps/api/src/modules/recommendations/schemas.ts` and `apps/api/src/modules/recommendations/routes.ts`
-- [ ] T090 [P] [US4] Implement the responsive dashboard, progress cards, recommendations, explanations, and actions in `apps/web/src/features/dashboard/DashboardPage.tsx` and `apps/web/src/features/dashboard/RecommendationList.tsx`
-- [ ] T091 [P] [US4] Add `dashboard_view_ready`, loading, error, and accessible empty-state instrumentation in `apps/web/src/features/dashboard/dashboard-observability.ts`
+- [X] T086 [US4] Create recommendation rule sets, snapshots, reason evidence, and version indexes in `database/migrations/0005_recommendations.sql`
+- [X] T087 [US4] Implement deterministic rule evaluation, stable ties, and structured explanations in `apps/api/src/modules/recommendations/engine.ts`
+- [X] T088 [US4] Implement dashboard aggregation across profile, progress, credentials, achievements, and recommendations in `apps/api/src/modules/recommendations/dashboard-service.ts`
+- [X] T089 [US4] Implement the authenticated dashboard schema and route in `apps/api/src/modules/recommendations/schemas.ts` and `apps/api/src/modules/recommendations/routes.ts`
+- [X] T090 [P] [US4] Implement the responsive dashboard, progress cards, recommendations, explanations, and actions in `apps/web/src/features/dashboard/DashboardPage.tsx` and `apps/web/src/features/dashboard/RecommendationList.tsx`
+- [X] T091 [P] [US4] Add `dashboard_view_ready`, loading, error, and accessible empty-state instrumentation in `apps/web/src/features/dashboard/dashboard-observability.ts`
 
 **Checkpoint**: User Story 4 independently proves SC-002 and recommendation explainability.
 
@@ -224,22 +224,22 @@ achievement criterion twice, and verify distinct history, one award, and self-de
 
 ### Tests for User Story 5
 
-- [ ] T092 [P] [US5] Add contract tests for certification record create/list and achievement list in `apps/api/tests/contract/credentials.contract.test.ts`
-- [ ] T093 [P] [US5] Add integration tests for null-aware duplicate detection, idempotency, expiry validation, and renewals in `apps/api/tests/integration/certification-history.test.ts`
-- [ ] T094 [P] [US5] Add unit tests for bounded achievement criteria and evidence generation in `apps/api/tests/unit/achievement-evaluator.test.ts`
-- [ ] T095 [P] [US5] Add integration tests for one-time awards across repeated progress/certification triggers in `apps/api/tests/integration/achievement-awards.test.ts`
-- [ ] T096 [P] [US5] Add component tests for certification forms/history, self-declared labels, and achievement cards in `apps/web/tests/credentials.test.tsx`
-- [ ] T097 [P] [US5] Add acquisition, renewal, duplicate, and achievement journeys in `tests/e2e/us5-credentials.spec.ts`
+- [X] T092 [P] [US5] Add contract tests for certification record create/list and achievement list in `apps/api/tests/contract/credentials.contract.test.ts`
+- [X] T093 [P] [US5] Add integration tests for null-aware duplicate detection, idempotency, expiry validation, and renewals in `apps/api/tests/integration/certification-history.test.ts`
+- [X] T094 [P] [US5] Add unit tests for bounded achievement criteria and evidence generation in `apps/api/tests/unit/achievement-evaluator.test.ts`
+- [X] T095 [P] [US5] Add integration tests for one-time awards across repeated progress/certification triggers in `apps/api/tests/integration/achievement-awards.test.ts`
+- [X] T096 [P] [US5] Add component tests for certification forms/history, self-declared labels, and achievement cards in `apps/web/tests/credentials.test.tsx`
+- [X] T097 [P] [US5] Add acquisition, renewal, duplicate, and achievement journeys in `tests/e2e/us5-credentials.spec.ts`
 
 ### Implementation for User Story 5
 
-- [ ] T098 [US5] Create certification records, null-aware uniqueness, achievement revisions, and award evidence in `database/migrations/0006_credentials_achievements.sql`
-- [ ] T099 [US5] Implement certification history validation, duplicate lookup, renewal creation, and queries in `apps/api/src/modules/credentials/repository.ts` and `apps/api/src/modules/credentials/service.ts`
-- [ ] T100 [US5] Implement certification record schemas and authenticated routes in `apps/api/src/modules/credentials/schemas.ts` and `apps/api/src/modules/credentials/routes.ts`
-- [ ] T101 [US5] Implement bounded achievement evaluation and idempotent award recording from domain events in `apps/api/src/modules/achievements/evaluator.ts` and `apps/api/src/modules/achievements/service.ts`
-- [ ] T102 [US5] Implement the achievement list route and connect progress/certification triggers in `apps/api/src/modules/achievements/routes.ts` and `apps/api/src/modules/achievements/subscribers.ts`
-- [ ] T103 [P] [US5] Implement certification acquisition/renewal forms and immutable history in `apps/web/src/features/credentials/CertificationRecordsPage.tsx` and `apps/web/src/features/credentials/CertificationRecordForm.tsx`
-- [ ] T104 [P] [US5] Implement achievement cards with awarded definition/date and empty states in `apps/web/src/features/credentials/AchievementsList.tsx`
+- [X] T098 [US5] Create certification records, null-aware uniqueness, achievement revisions, and award evidence in `database/migrations/0006_credentials_achievements.sql`
+- [X] T099 [US5] Implement certification history validation, duplicate lookup, renewal creation, and queries in `apps/api/src/modules/credentials/repository.ts` and `apps/api/src/modules/credentials/service.ts`
+- [X] T100 [US5] Implement certification record schemas and authenticated routes in `apps/api/src/modules/credentials/schemas.ts` and `apps/api/src/modules/credentials/routes.ts`
+- [X] T101 [US5] Implement bounded achievement evaluation and idempotent award recording from domain events in `apps/api/src/modules/achievements/evaluator.ts` and `apps/api/src/modules/achievements/service.ts`
+- [X] T102 [US5] Implement the achievement list route and connect progress/certification triggers in `apps/api/src/modules/achievements/routes.ts` and `apps/api/src/modules/achievements/subscribers.ts`
+- [X] T103 [P] [US5] Implement certification acquisition/renewal forms and immutable history in `apps/web/src/features/credentials/CertificationRecordsPage.tsx` and `apps/web/src/features/credentials/CertificationRecordForm.tsx`
+- [X] T104 [P] [US5] Implement achievement cards with awarded definition/date and empty states in `apps/web/src/features/credentials/AchievementsList.tsx`
 
 **Checkpoint**: User Story 5 proves SC-012 and preserves all certification/achievement history.
 
@@ -256,26 +256,26 @@ repeat an admin call as a normal user and verify denial plus audit evidence.
 
 ### Tests for User Story 6
 
-- [ ] T105 [P] [US6] Add contract tests for category, skill, trail, certification, achievement, publication, and lifecycle admin routes in `apps/api/tests/contract/administration.contract.test.ts`
-- [ ] T106 [P] [US6] Add deferred-trigger tests for self-reference, cross-trail prerequisites, cycles, positions, and atomic publication in `database/tests/trail-publication.integration.test.ts`
-- [ ] T107 [P] [US6] Add integration tests for immutable revisions, pointer swaps, current-user recalculation, and non-destructive deactivation in `apps/api/tests/integration/catalog-publication.test.ts`
-- [ ] T108 [P] [US6] Add integration tests for admin-only guards, mass-assignment denial, CSRF, audit redaction, and rate limits in `apps/api/tests/integration/administration-security.test.ts`
-- [ ] T109 [P] [US6] Add component tests for admin forms, keyboard ordering, prerequisite editing, validation, and publication states in `apps/web/tests/administration.test.tsx`
-- [ ] T110 [P] [US6] Add the five-step trail authoring, publication, deactivation, and denial journey in `tests/e2e/us6-administration.spec.ts`
+- [X] T105 [P] [US6] Add contract tests for category, skill, trail, certification, achievement, publication, and lifecycle admin routes in `apps/api/tests/contract/administration.contract.test.ts`
+- [X] T106 [P] [US6] Add deferred-trigger tests for self-reference, cross-trail prerequisites, cycles, positions, and atomic publication in `database/tests/trail-publication.integration.test.ts`
+- [X] T107 [P] [US6] Add integration tests for immutable revisions, pointer swaps, current-user recalculation, and non-destructive deactivation in `apps/api/tests/integration/catalog-publication.test.ts`
+- [X] T108 [P] [US6] Add integration tests for admin-only guards, mass-assignment denial, CSRF, audit redaction, and rate limits in `apps/api/tests/integration/administration-security.test.ts`
+- [X] T109 [P] [US6] Add component tests for admin forms, keyboard ordering, prerequisite editing, validation, and publication states in `apps/web/tests/administration.test.tsx`
+- [X] T110 [P] [US6] Add the five-step trail authoring, publication, deactivation, and denial journey in `tests/e2e/us6-administration.spec.ts`
 
 ### Implementation for User Story 6
 
-- [ ] T111 [US6] Add deferred trail DAG validation, immutable publication guards, and catalog lifecycle constraints in `database/migrations/0007_catalog_administration.sql`
-- [ ] T112 [US6] Implement admin schemas and draft root/revision persistence for all catalog resource types in `apps/api/src/modules/administration/schemas.ts` and `apps/api/src/modules/administration/repository.ts`
-- [ ] T113 [US6] Implement atomic trail/non-trail publication, full graph validation, and current-pointer swaps in `apps/api/src/modules/administration/publication-service.ts`
-- [ ] T114 [US6] Implement unpublish/deactivate rules, referenced-item protection, and affected-user change markers in `apps/api/src/modules/administration/lifecycle-service.ts`
-- [ ] T115 [US6] Implement category and skill create/update/publication routes in `apps/api/src/modules/administration/category-skill-routes.ts`
-- [ ] T116 [US6] Implement trail draft, ordering, graph, and publication routes in `apps/api/src/modules/administration/trail-routes.ts`
-- [ ] T117 [US6] Implement certification and achievement create/update/publication routes in `apps/api/src/modules/administration/credential-routes.ts`
-- [ ] T118 [P] [US6] Implement the protected administration shell and catalog lifecycle navigation in `apps/web/src/features/administration/AdminLayout.tsx` and `apps/web/src/features/administration/AdminCatalogPage.tsx`
-- [ ] T119 [P] [US6] Implement accessible category and skill draft/edit/publish forms in `apps/web/src/features/administration/CategoryForm.tsx` and `apps/web/src/features/administration/SkillForm.tsx`
-- [ ] T120 [P] [US6] Implement keyboard-operable trail step ordering, skill links, prerequisites, validation, and publication in `apps/web/src/features/administration/TrailEditor.tsx`
-- [ ] T121 [P] [US6] Implement certification requirements and bounded achievement criteria forms in `apps/web/src/features/administration/CertificationForm.tsx` and `apps/web/src/features/administration/AchievementForm.tsx`
+- [X] T111 [US6] Add deferred trail DAG validation, immutable publication guards, and catalog lifecycle constraints in `database/migrations/0007_catalog_administration.sql`
+- [X] T112 [US6] Implement admin schemas and draft root/revision persistence for all catalog resource types in `apps/api/src/modules/administration/schemas.ts` and `apps/api/src/modules/administration/repository.ts`
+- [X] T113 [US6] Implement atomic trail/non-trail publication, full graph validation, and current-pointer swaps in `apps/api/src/modules/administration/publication-service.ts`
+- [X] T114 [US6] Implement unpublish/deactivate rules, referenced-item protection, and affected-user change markers in `apps/api/src/modules/administration/lifecycle-service.ts`
+- [X] T115 [US6] Implement category and skill create/update/publication routes in `apps/api/src/modules/administration/category-skill-routes.ts`
+- [X] T116 [US6] Implement trail draft, ordering, graph, and publication routes in `apps/api/src/modules/administration/trail-routes.ts`
+- [X] T117 [US6] Implement certification and achievement create/update/publication routes in `apps/api/src/modules/administration/credential-routes.ts`
+- [X] T118 [P] [US6] Implement the protected administration shell and catalog lifecycle navigation in `apps/web/src/features/administration/AdminLayout.tsx` and `apps/web/src/features/administration/AdminCatalogPage.tsx`
+- [X] T119 [P] [US6] Implement accessible category and skill draft/edit/publish forms in `apps/web/src/features/administration/CategoryForm.tsx` and `apps/web/src/features/administration/SkillForm.tsx`
+- [X] T120 [P] [US6] Implement keyboard-operable trail step ordering, skill links, prerequisites, validation, and publication in `apps/web/src/features/administration/TrailEditor.tsx`
+- [X] T121 [P] [US6] Implement certification requirements and bounded achievement criteria forms in `apps/web/src/features/administration/CertificationForm.tsx` and `apps/web/src/features/administration/AchievementForm.tsx`
 
 **Checkpoint**: User Story 6 independently proves SC-007 and all catalog integrity/authorization rules.
 
@@ -285,17 +285,17 @@ repeat an admin call as a normal user and verify denial plus audit evidence.
 
 **Purpose**: Validate qualities spanning multiple stories and prepare a secure, observable release.
 
-- [ ] T122 Regenerate the checked-in OpenAPI client and add incompatible-diff enforcement in `packages/api-contract/openapi.yaml`, `packages/api-contract/src/generated/`, and `.github/workflows/ci.yml`
-- [ ] T123 [P] Add the cross-story authentication, authorization, CSRF, rate-limit, input, and redaction regression suite in `apps/api/tests/integration/security-regression.test.ts`
-- [ ] T124 [P] Add the full Chromium/Firefox/WebKit desktop/tablet/mobile and axe release matrix in `tests/e2e/accessibility-responsive.spec.ts` and `playwright.config.ts`
-- [ ] T125 [P] Implement 500-session catalog/dashboard load, spike, soak, and browser readiness checks in `tests/load/catalog-dashboard-500.js`
-- [ ] T126 [P] Add secret, dependency, static-analysis, SBOM, and container-image gates in `.github/workflows/security.yml`
-- [ ] T127 Implement backup restore, erasure-ledger replay, RPO/RTO evidence, and monthly drill commands in `scripts/validate-restore.ps1` and `docs/operations/disaster-recovery.md`
-- [ ] T128 Add database outage, timeout, pool exhaustion, retry, worker crash, and graceful-shutdown tests in `apps/api/tests/integration/reliability.test.ts`
-- [ ] T129 [P] Create immutable production builds, non-root API image, frontend static image, and health configuration in `apps/api/Dockerfile`, `apps/web/Dockerfile`, and `.dockerignore`
-- [ ] T130 [P] Document logs, metrics, traces, alerts, 99.5% availability, and erasure deadline operations in `docs/operations/observability.md` and `docs/operations/account-erasure.md`
-- [ ] T131 [P] Complete installation, configuration, migration, seed, run, test, and secret guidance in `README.md`
-- [ ] T132 [P] Record architecture, auth/session, catalog revision, progress history, and erasure decisions in `docs/adr/0001-architecture.md`, `docs/adr/0002-auth-sessions.md`, `docs/adr/0003-history-erasure.md`
+- [X] T122 Regenerate the checked-in OpenAPI client and add incompatible-diff enforcement in `packages/api-contract/openapi.yaml`, `packages/api-contract/src/generated/`, and `.github/workflows/ci.yml`
+- [X] T123 [P] Add the cross-story authentication, authorization, CSRF, rate-limit, input, and redaction regression suite in `apps/api/tests/integration/security-regression.test.ts`
+- [X] T124 [P] Add the full Chromium/Firefox/WebKit desktop/tablet/mobile and axe release matrix in `tests/e2e/accessibility-responsive.spec.ts` and `playwright.config.ts`
+- [X] T125 [P] Implement 500-session catalog/dashboard load, spike, soak, and browser readiness checks in `tests/load/catalog-dashboard-500.js`
+- [X] T126 [P] Add secret, dependency, static-analysis, SBOM, and container-image gates in `.github/workflows/security.yml`
+- [X] T127 Implement backup restore, erasure-ledger replay, RPO/RTO evidence, and monthly drill commands in `scripts/validate-restore.ps1` and `docs/operations/disaster-recovery.md`
+- [X] T128 Add database outage, timeout, pool exhaustion, retry, worker crash, and graceful-shutdown tests in `apps/api/tests/integration/reliability.test.ts`
+- [X] T129 [P] Create immutable production builds, non-root API image, frontend static image, and health configuration in `apps/api/Dockerfile`, `apps/web/Dockerfile`, and `.dockerignore`
+- [X] T130 [P] Document logs, metrics, traces, alerts, 99.5% availability, and erasure deadline operations in `docs/operations/observability.md` and `docs/operations/account-erasure.md`
+- [X] T131 [P] Complete installation, configuration, migration, seed, run, test, and secret guidance in `README.md`
+- [X] T132 [P] Record architecture, auth/session, catalog revision, progress history, and erasure decisions in `docs/adr/0001-architecture.md`, `docs/adr/0002-auth-sessions.md`, `docs/adr/0003-history-erasure.md`
 - [ ] T133 Execute every automated and manual scenario from `specs/001-mvp-skill-maps/quickstart.md` and record release evidence in `docs/validation/mvp-release.md`
 - [ ] T134 Re-run all Constitution gates and record owners/expiry for any approved exception in `docs/validation/constitution-review.md`
 

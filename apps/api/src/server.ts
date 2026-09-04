@@ -1,18 +1,16 @@
 import { buildApp } from './app.js';
 import { readEnvironment } from './config/environment.js';
 import { startTelemetry } from './plugins/observability.js';
+import { createGracefulShutdown } from './plugins/lifecycle.js';
 
 const environment = readEnvironment();
 const telemetry = startTelemetry(environment.otelServiceName);
 const app = buildApp({ environment });
 
-let closing = false;
+const close = createGracefulShutdown(app, { close: () => telemetry.shutdown() });
 async function shutdown(signal: string) {
-  if (closing) return;
-  closing = true;
   app.log.info({ signal }, 'Graceful shutdown started');
-  await app.close();
-  await telemetry.shutdown();
+  await close();
 }
 
 process.once('SIGINT', () => void shutdown('SIGINT'));

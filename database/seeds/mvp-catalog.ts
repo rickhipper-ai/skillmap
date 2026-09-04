@@ -121,6 +121,48 @@ export async function seedMvpCatalog(pool: Pool): Promise<void> {
       UPDATE certifications SET status = 'published', published_revision_id = CASE id
         WHEN '50000000-0000-4000-8000-000000000001' THEN '51000000-0000-4000-8000-000000000001'::uuid
         ELSE '51000000-0000-4000-8000-000000000002'::uuid END;
+
+      INSERT INTO achievements (id, slug) VALUES
+        ('70000000-0000-4000-8000-000000000001', 'primeira-etapa'),
+        ('70000000-0000-4000-8000-000000000002', 'primeira-certificacao');
+      INSERT INTO achievement_revisions
+        (id, achievement_id, revision_number, title, description, icon_label, criterion_type,
+         criterion_parameters, created_by_user_id) VALUES
+        ('71000000-0000-4000-8000-000000000001', '70000000-0000-4000-8000-000000000001', 1,
+         'Primeira etapa', 'Concluiu sua primeira etapa de uma trilha.', 'Marco de etapa',
+         'completed_steps', '{"minimum": 1}', '10000000-0000-4000-8000-000000000001'),
+        ('71000000-0000-4000-8000-000000000002', '70000000-0000-4000-8000-000000000002', 1,
+         'Primeira certificacao', 'Registrou sua primeira certificacao autodeclarada.',
+         'Marco de certificacao', 'certification_records', '{"minimum": 1}',
+         '10000000-0000-4000-8000-000000000001');
+      UPDATE achievements SET status = 'published', published_revision_id = CASE id
+        WHEN '70000000-0000-4000-8000-000000000001' THEN '71000000-0000-4000-8000-000000000001'::uuid
+        ELSE '71000000-0000-4000-8000-000000000002'::uuid END;
+
+      INSERT INTO catalog_publications
+        (resource_type, resource_id, revision_id, revision_number, idempotency_key,
+         published_by_user_id, published_at)
+      SELECT 'category'::catalog_publication_resource_type, root.id, revision.id, revision.revision_number, gen_random_uuid(),
+        revision.created_by_user_id, revision.created_at
+      FROM skill_categories root
+      JOIN category_revisions revision ON revision.id = root.published_revision_id
+      UNION ALL
+      SELECT 'skill'::catalog_publication_resource_type, root.id, revision.id, revision.revision_number, gen_random_uuid(),
+        revision.created_by_user_id, revision.created_at
+      FROM skills root JOIN skill_revisions revision ON revision.id = root.published_revision_id
+      UNION ALL
+      SELECT 'trail'::catalog_publication_resource_type, root.id, revision.id, revision.revision_number, gen_random_uuid(),
+        revision.created_by_user_id, revision.created_at
+      FROM learning_trails root JOIN trail_revisions revision ON revision.id = root.published_revision_id
+      UNION ALL
+      SELECT 'certification'::catalog_publication_resource_type, root.id, revision.id, revision.revision_number, gen_random_uuid(),
+        revision.created_by_user_id, revision.created_at
+      FROM certifications root JOIN certification_revisions revision ON revision.id = root.published_revision_id
+      UNION ALL
+      SELECT 'achievement'::catalog_publication_resource_type, root.id, revision.id, revision.revision_number, gen_random_uuid(),
+        revision.created_by_user_id, revision.created_at
+      FROM achievements root JOIN achievement_revisions revision ON revision.id = root.published_revision_id
+      ON CONFLICT DO NOTHING;
     `);
     await client.query('COMMIT');
   } catch (error) {

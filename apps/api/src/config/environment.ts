@@ -14,6 +14,10 @@ const environmentSchema = z.object({
   WEB_ORIGIN: z.string().url(),
   DATABASE_URL: postgresUrl,
   MIGRATION_DATABASE_URL: postgresUrl,
+  DATABASE_CONNECTION_TIMEOUT_MS: z.coerce.number().int().min(100).max(60_000).default(5_000),
+  DATABASE_QUERY_TIMEOUT_MS: z.coerce.number().int().min(100).max(120_000).default(10_000),
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
+  JOB_POLL_INTERVAL_MS: z.coerce.number().int().min(100).max(60_000).default(1_000),
   AUTH_SECRET: z.string().min(32),
   SMTP_HOST: z.string().min(1).default('127.0.0.1'),
   SMTP_PORT: z.coerce.number().int().min(1).max(65_535).default(1025),
@@ -28,6 +32,10 @@ export interface Environment {
   webOrigin: string;
   databaseUrl: string;
   migrationDatabaseUrl: string;
+  databaseConnectionTimeoutMs: number;
+  databaseQueryTimeoutMs: number;
+  databasePoolMax: number;
+  jobPollIntervalMs: number;
   authSecret: string;
   smtpHost: string;
   smtpPort: number;
@@ -49,6 +57,10 @@ export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     webOrigin: parsed.data.WEB_ORIGIN,
     databaseUrl: parsed.data.DATABASE_URL,
     migrationDatabaseUrl: parsed.data.MIGRATION_DATABASE_URL,
+    databaseConnectionTimeoutMs: parsed.data.DATABASE_CONNECTION_TIMEOUT_MS,
+    databaseQueryTimeoutMs: parsed.data.DATABASE_QUERY_TIMEOUT_MS,
+    databasePoolMax: parsed.data.DATABASE_POOL_MAX,
+    jobPollIntervalMs: parsed.data.JOB_POLL_INTERVAL_MS,
     authSecret: parsed.data.AUTH_SECRET,
     smtpHost: parsed.data.SMTP_HOST,
     smtpPort: parsed.data.SMTP_PORT,

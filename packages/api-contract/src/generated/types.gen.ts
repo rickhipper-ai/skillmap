@@ -151,10 +151,20 @@ export type TrailProgress = {
 };
 
 export type Dashboard = {
-    activeTrails: Array<TrailProgress>;
+    activeTrails: Array<DashboardTrailSummary>;
     certificationRecords: Array<CertificationRecord>;
     achievements: Array<AchievementAward>;
     recommendations: Array<Recommendation>;
+};
+
+export type DashboardTrailSummary = {
+    trailId: string;
+    title: string;
+    currentRevisionId: string;
+    percentage: number;
+    streamVersion: number;
+    lastActivityAt: string;
+    catalogChanged: boolean;
 };
 
 export type Recommendation = {
@@ -163,8 +173,31 @@ export type Recommendation = {
     targetType: 'trail_step' | 'trail';
     trailId: string;
     stepId?: string | null;
+    title: string;
     reasonCode: 'next_eligible_step' | 'desired_role' | 'interest_match';
+    evidence: NextStepRecommendationEvidence | ProfileRecommendationEvidence;
     explanation: string;
+    inputVersions: RecommendationInputVersions;
+};
+
+export type NextStepRecommendationEvidence = {
+    position: number;
+    completedPrerequisiteStepIds: Array<string>;
+    progressStreamVersion: number;
+};
+
+export type ProfileRecommendationEvidence = {
+    desiredRoleId?: string;
+    matchedInterestCategoryId?: string;
+    matchedInterestSkillIds: Array<string>;
+    score: number;
+};
+
+export type RecommendationInputVersions = {
+    ruleSetVersion: number;
+    profileVersion: number;
+    progressStreamVersion: number;
+    catalogRevisionId: string;
 };
 
 export type CertificationRecordInput = {
@@ -222,18 +255,31 @@ export type CertificationInput = {
     name: string;
     issuer: string;
     description: string;
+    defaultValidityMonths?: number;
     skillIds?: Array<string>;
     trailIds?: Array<string>;
+    requirements?: Array<CertificationRequirementInput>;
+};
+
+export type CertificationRequirementInput = {
+    title: string;
+    type: 'skill' | 'trail';
+    targetId: string;
+    required: boolean;
+    position: number;
 };
 
 export type AchievementInput = {
     slug: string;
     title: string;
     description: string;
-    criterionType: 'first_step_completed' | 'trail_completed' | 'certification_recorded';
-    criterionParameters: {
-        [key: string]: unknown;
-    };
+    iconLabel: string;
+    criterionType: 'completed_steps' | 'certification_records';
+    criterionParameters: AchievementCriterionParameters;
+};
+
+export type AchievementCriterionParameters = {
+    minimum: number;
 };
 
 export type CatalogDraftInput = CategoryPatch | SkillPatch | CertificationPatch | AchievementPatch;
@@ -256,18 +302,19 @@ export type CertificationPatch = {
     name?: string;
     issuer?: string;
     description?: string;
+    defaultValidityMonths?: number;
     skillIds?: Array<string>;
     trailIds?: Array<string>;
+    requirements?: Array<CertificationRequirementInput>;
 };
 
 export type AchievementPatch = {
     slug?: string;
     title?: string;
     description?: string;
-    criterionType?: 'first_step_completed' | 'trail_completed' | 'certification_recorded';
-    criterionParameters?: {
-        [key: string]: unknown;
-    };
+    iconLabel?: string;
+    criterionType?: 'completed_steps' | 'certification_records';
+    criterionParameters?: AchievementCriterionParameters;
 };
 
 export type AdminCatalogResource = {
@@ -300,7 +347,7 @@ export type StepId = string;
 
 export type CertificationId = string;
 
-export type ResourceType = 'category' | 'skill' | 'certification' | 'achievement';
+export type ResourceType = 'category' | 'skill' | 'trail' | 'certification' | 'achievement';
 
 export type ResourceId = string;
 
@@ -995,7 +1042,23 @@ export type CreateCategoryErrors = {
     /**
      * RFC 9457 problem response.
      */
+    401: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
     403: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
+    409: Problem;
+    /**
+     * Input failed validation.
+     */
+    422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type CreateCategoryError = CreateCategoryErrors[keyof CreateCategoryErrors];
@@ -1023,7 +1086,23 @@ export type CreateSkillErrors = {
     /**
      * RFC 9457 problem response.
      */
+    401: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
     403: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
+    409: Problem;
+    /**
+     * Input failed validation.
+     */
+    422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type CreateSkillError = CreateSkillErrors[keyof CreateSkillErrors];
@@ -1051,7 +1130,23 @@ export type CreateTrailErrors = {
     /**
      * RFC 9457 problem response.
      */
+    401: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
     403: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
+    409: Problem;
+    /**
+     * Input failed validation.
+     */
+    422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type CreateTrailError = CreateTrailErrors[keyof CreateTrailErrors];
@@ -1081,11 +1176,27 @@ export type UpdateTrailDraftErrors = {
     /**
      * RFC 9457 problem response.
      */
+    401: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
     403: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
+    404: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
+    409: Problem;
     /**
      * Input failed validation.
      */
     422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type UpdateTrailDraftError = UpdateTrailDraftErrors[keyof UpdateTrailDraftErrors];
@@ -1116,7 +1227,15 @@ export type PublishTrailErrors = {
     /**
      * RFC 9457 problem response.
      */
+    401: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
     403: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
+    404: Problem;
     /**
      * RFC 9457 problem response.
      */
@@ -1125,6 +1244,10 @@ export type PublishTrailErrors = {
      * Input failed validation.
      */
     422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type PublishTrailError = PublishTrailErrors[keyof PublishTrailErrors];
@@ -1152,7 +1275,23 @@ export type CreateCertificationErrors = {
     /**
      * RFC 9457 problem response.
      */
+    401: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
     403: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
+    409: Problem;
+    /**
+     * Input failed validation.
+     */
+    422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type CreateCertificationError = CreateCertificationErrors[keyof CreateCertificationErrors];
@@ -1180,11 +1319,23 @@ export type CreateAchievementErrors = {
     /**
      * RFC 9457 problem response.
      */
+    401: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
     403: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
+    409: Problem;
     /**
      * Input failed validation.
      */
     422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type CreateAchievementError = CreateAchievementErrors[keyof CreateAchievementErrors];
@@ -1204,7 +1355,7 @@ export type UpdateCatalogDraftData = {
         'X-CSRF-Token': string;
     };
     path: {
-        resourceType: 'category' | 'skill' | 'certification' | 'achievement';
+        resourceType: 'category' | 'skill' | 'trail' | 'certification' | 'achievement';
         resourceId: string;
     };
     query?: never;
@@ -1215,15 +1366,27 @@ export type UpdateCatalogDraftErrors = {
     /**
      * RFC 9457 problem response.
      */
+    401: Problem;
+    /**
+     * RFC 9457 problem response.
+     */
     403: Problem;
     /**
      * RFC 9457 problem response.
      */
     404: Problem;
     /**
+     * RFC 9457 problem response.
+     */
+    409: Problem;
+    /**
      * Input failed validation.
      */
     422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type UpdateCatalogDraftError = UpdateCatalogDraftErrors[keyof UpdateCatalogDraftErrors];
@@ -1244,7 +1407,7 @@ export type PublishCatalogResourceData = {
         'Idempotency-Key': string;
     };
     path: {
-        resourceType: 'category' | 'skill' | 'certification' | 'achievement';
+        resourceType: 'category' | 'skill' | 'trail' | 'certification' | 'achievement';
         resourceId: string;
     };
     query?: never;
@@ -1252,6 +1415,10 @@ export type PublishCatalogResourceData = {
 };
 
 export type PublishCatalogResourceErrors = {
+    /**
+     * RFC 9457 problem response.
+     */
+    401: Problem;
     /**
      * RFC 9457 problem response.
      */
@@ -1268,6 +1435,10 @@ export type PublishCatalogResourceErrors = {
      * Input failed validation.
      */
     422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type PublishCatalogResourceError = PublishCatalogResourceErrors[keyof PublishCatalogResourceErrors];
@@ -1289,7 +1460,7 @@ export type UpdateCatalogResourceStatusData = {
         'X-CSRF-Token': string;
     };
     path: {
-        resourceType: 'category' | 'skill' | 'certification' | 'achievement';
+        resourceType: 'category' | 'skill' | 'trail' | 'certification' | 'achievement';
         resourceId: string;
     };
     query?: never;
@@ -1297,6 +1468,10 @@ export type UpdateCatalogResourceStatusData = {
 };
 
 export type UpdateCatalogResourceStatusErrors = {
+    /**
+     * RFC 9457 problem response.
+     */
+    401: Problem;
     /**
      * RFC 9457 problem response.
      */
@@ -1309,6 +1484,14 @@ export type UpdateCatalogResourceStatusErrors = {
      * RFC 9457 problem response.
      */
     409: Problem;
+    /**
+     * Input failed validation.
+     */
+    422: ValidationProblem;
+    /**
+     * RFC 9457 problem response.
+     */
+    429: Problem;
 };
 
 export type UpdateCatalogResourceStatusError = UpdateCatalogResourceStatusErrors[keyof UpdateCatalogResourceStatusErrors];

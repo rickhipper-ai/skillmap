@@ -475,7 +475,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/skills:
     post:
@@ -496,7 +500,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/trails:
     post:
@@ -517,7 +525,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/trails/{trailId}:
     patch:
@@ -539,8 +551,12 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
         '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/trails/{trailId}/publications:
     post:
@@ -558,9 +574,12 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Publication' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
         '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/certifications:
     post:
@@ -581,7 +600,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/achievements:
     post:
@@ -602,8 +625,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
         '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/catalog/{resourceType}/{resourceId}:
     patch:
@@ -626,9 +652,12 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
         '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/catalog/{resourceType}/{resourceId}/publications:
     post:
@@ -647,10 +676,12 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Publication' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
         '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
   /v1/admin/catalog/{resourceType}/{resourceId}/status:
     patch:
@@ -678,9 +709,12 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminCatalogResource' }
+        '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/Problem' }
 
 components:
   securitySchemes:
@@ -732,7 +766,7 @@ components:
       name: resourceType
       in: path
       required: true
-      schema: { type: string, enum: [category, skill, certification, achievement] }
+      schema: { type: string, enum: [category, skill, trail, certification, achievement] }
     ResourceId:
       name: resourceId
       in: path
@@ -955,6 +989,7 @@ components:
           type: array
           items:
             type: object
+            additionalProperties: false
             required: [stepId, state, eligible]
             properties:
               stepId: { type: string, format: uuid }
@@ -982,7 +1017,7 @@ components:
       properties:
         activeTrails:
           type: array
-          items: { $ref: '#/components/schemas/TrailProgress' }
+          items: { $ref: '#/components/schemas/DashboardTrailSummary' }
         certificationRecords:
           type: array
           items: { $ref: '#/components/schemas/CertificationRecord' }
@@ -993,17 +1028,67 @@ components:
           type: array
           maxItems: 3
           items: { $ref: '#/components/schemas/Recommendation' }
+    DashboardTrailSummary:
+      type: object
+      additionalProperties: false
+      required: [trailId, title, currentRevisionId, percentage, streamVersion, lastActivityAt, catalogChanged]
+      properties:
+        trailId: { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 180 }
+        currentRevisionId: { type: string, format: uuid }
+        percentage: { type: number, minimum: 0, maximum: 100 }
+        streamVersion: { type: integer, minimum: 0 }
+        lastActivityAt: { type: string, format: date-time }
+        catalogChanged: { type: boolean }
     Recommendation:
       type: object
-      required: [id, rank, targetType, trailId, reasonCode, explanation]
+      additionalProperties: false
+      required: [id, rank, targetType, trailId, title, reasonCode, evidence, explanation, inputVersions]
       properties:
         id: { type: string, format: uuid }
         rank: { type: integer, minimum: 1, maximum: 3 }
         targetType: { type: string, enum: [trail_step, trail] }
         trailId: { type: string, format: uuid }
         stepId: { type: [string, 'null'], format: uuid }
+        title: { type: string, minLength: 1, maxLength: 180 }
         reasonCode: { type: string, enum: [next_eligible_step, desired_role, interest_match] }
-        explanation: { type: string }
+        evidence:
+          oneOf:
+            - $ref: '#/components/schemas/NextStepRecommendationEvidence'
+            - $ref: '#/components/schemas/ProfileRecommendationEvidence'
+        explanation: { type: string, minLength: 1 }
+        inputVersions:
+          $ref: '#/components/schemas/RecommendationInputVersions'
+    NextStepRecommendationEvidence:
+      type: object
+      additionalProperties: false
+      required: [position, completedPrerequisiteStepIds, progressStreamVersion]
+      properties:
+        position: { type: integer, minimum: 1 }
+        completedPrerequisiteStepIds:
+          type: array
+          items: { type: string, format: uuid }
+        progressStreamVersion: { type: integer, minimum: 0 }
+    ProfileRecommendationEvidence:
+      type: object
+      additionalProperties: false
+      required: [matchedInterestSkillIds, score]
+      properties:
+        desiredRoleId: { type: string, format: uuid }
+        matchedInterestCategoryId: { type: string, format: uuid }
+        matchedInterestSkillIds:
+          type: array
+          items: { type: string, format: uuid }
+        score: { type: number, minimum: 1 }
+    RecommendationInputVersions:
+      type: object
+      additionalProperties: false
+      required: [ruleSetVersion, profileVersion, progressStreamVersion, catalogRevisionId]
+      properties:
+        ruleSetVersion: { type: integer, minimum: 1 }
+        profileVersion: { type: integer, minimum: 0 }
+        progressStreamVersion: { type: integer, minimum: 0 }
+        catalogRevisionId: { type: string, format: uuid }
     CertificationRecordInput:
       type: object
       additionalProperties: false
@@ -1089,6 +1174,7 @@ components:
         name: { type: string, minLength: 1, maxLength: 180 }
         issuer: { type: string, minLength: 1, maxLength: 180 }
         description: { type: string, minLength: 1, maxLength: 8000 }
+        defaultValidityMonths: { type: integer, minimum: 1, maximum: 1200 }
         skillIds:
           type: array
           uniqueItems: true
@@ -1097,20 +1183,39 @@ components:
           type: array
           uniqueItems: true
           items: { type: string, format: uuid }
+        requirements:
+          type: array
+          maxItems: 200
+          items: { $ref: '#/components/schemas/CertificationRequirementInput' }
+    CertificationRequirementInput:
+      type: object
+      additionalProperties: false
+      required: [title, type, targetId, required, position]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 180 }
+        type: { type: string, enum: [skill, trail] }
+        targetId: { type: string, format: uuid }
+        required: { type: boolean }
+        position: { type: integer, minimum: 1, maximum: 200 }
     AchievementInput:
       type: object
       additionalProperties: false
-      required: [slug, title, description, criterionType, criterionParameters]
+      required: [slug, title, description, iconLabel, criterionType, criterionParameters]
       properties:
         slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
         title: { type: string, minLength: 1, maxLength: 180 }
         description: { type: string, minLength: 1, maxLength: 2000 }
+        iconLabel: { type: string, minLength: 1, maxLength: 120 }
         criterionType:
           type: string
-          enum: [first_step_completed, trail_completed, certification_recorded]
-        criterionParameters:
-          type: object
-          maxProperties: 10
+          enum: [completed_steps, certification_records]
+        criterionParameters: { $ref: '#/components/schemas/AchievementCriterionParameters' }
+    AchievementCriterionParameters:
+      type: object
+      additionalProperties: false
+      required: [minimum]
+      properties:
+        minimum: { type: integer, minimum: 1, maximum: 1000 }
     CatalogDraftInput:
       oneOf:
         - $ref: '#/components/schemas/CategoryPatch'
@@ -1143,6 +1248,7 @@ components:
         name: { type: string, minLength: 1, maxLength: 180 }
         issuer: { type: string, minLength: 1, maxLength: 180 }
         description: { type: string, minLength: 1, maxLength: 8000 }
+        defaultValidityMonths: { type: integer, minimum: 1, maximum: 1200 }
         skillIds:
           type: array
           uniqueItems: true
@@ -1151,6 +1257,10 @@ components:
           type: array
           uniqueItems: true
           items: { type: string, format: uuid }
+        requirements:
+          type: array
+          maxItems: 200
+          items: { $ref: '#/components/schemas/CertificationRequirementInput' }
     AchievementPatch:
       type: object
       additionalProperties: false
@@ -1159,12 +1269,11 @@ components:
         slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
         title: { type: string, minLength: 1, maxLength: 180 }
         description: { type: string, minLength: 1, maxLength: 2000 }
+        iconLabel: { type: string, minLength: 1, maxLength: 120 }
         criterionType:
           type: string
-          enum: [first_step_completed, trail_completed, certification_recorded]
-        criterionParameters:
-          type: object
-          maxProperties: 10
+          enum: [completed_steps, certification_records]
+        criterionParameters: { $ref: '#/components/schemas/AchievementCriterionParameters' }
     AdminCatalogResource:
       type: object
       required: [id, slug, status, updatedAt]

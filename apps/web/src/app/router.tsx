@@ -17,6 +17,10 @@ import { catalogRouteLoader, detailRouteLoader } from '../features/catalog/route
 import { SkillDetailPage } from '../features/skill-map/SkillDetailPage';
 import { TrailDetailPage } from '../features/skill-map/TrailDetailPage';
 import { TrailProgressPage } from '../features/progress/TrailProgressPage';
+import { DashboardPage } from '../features/dashboard/DashboardPage';
+import { CertificationRecordsPage } from '../features/credentials/CertificationRecordsPage';
+import { AdminLayout } from '../features/administration/AdminLayout';
+import { AdminCatalogPage } from '../features/administration/AdminCatalogPage';
 
 interface RouterOptions {
   initialEntries?: string[];
@@ -47,6 +51,9 @@ function AppShell() {
         <nav aria-label="Principal">
           <Link to="/">Inicio</Link>
           <Link to="/catalogo">Catalogo</Link>
+          <Link to="/painel">Painel</Link>
+          <Link to="/credenciais">Credenciais</Link>
+          <Link to="/administracao">Administracao</Link>
           <Link to="/entrar">Entrar</Link>
         </nav>
       </header>
@@ -99,7 +106,14 @@ const routes = [
       { path: 'verificar-email', element: <VerifyEmailPage /> },
       { path: 'recuperar-acesso', element: <ResetPasswordPage /> },
       { path: 'perfil', element: <ProfilePage /> },
+      { path: 'painel', element: <DashboardPage /> },
+      { path: 'credenciais', element: <CertificationRecordsPage /> },
       { path: 'progresso/trilhas/:trailId', element: <TrailProgressPage /> },
+      {
+        path: 'administracao',
+        element: <AdminLayout />,
+        children: [{ index: true, element: <AdminCatalogPage /> }],
+      },
       { path: '*', element: <RouteErrorPage /> },
     ],
   },

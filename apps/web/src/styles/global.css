@@ -112,6 +112,7 @@ form label:not(.check-field) {
 
 input,
 select,
+textarea,
 button {
   min-height: 2.75rem;
   padding: 0.65rem 0.8rem;
@@ -120,6 +121,11 @@ button {
   color: var(--color-ink);
   background: var(--color-surface);
   font: inherit;
+}
+
+textarea {
+  min-height: 7rem;
+  resize: vertical;
 }
 
 button {
@@ -397,6 +403,287 @@ td {
   background: var(--color-surface);
 }
 
+.dashboard-page {
+  max-width: none;
+}
+
+.dashboard-page h1 {
+  font-size: clamp(2.75rem, 8vw, 6rem);
+}
+
+.dashboard-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 0.7fr);
+  align-items: end;
+  gap: var(--space-4);
+  padding-block-end: var(--space-4);
+  border-block-end: 1px solid var(--color-muted);
+}
+
+.dashboard-intro > p {
+  max-width: 34ch;
+  font-size: 1.15rem;
+}
+
+.dashboard-section {
+  max-width: none;
+  padding-block: var(--space-4);
+  border-block-end: 1px solid color-mix(in srgb, var(--color-ink), transparent 75%);
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+
+.section-heading h2,
+.section-heading p {
+  margin: 0;
+}
+
+.section-heading h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.section-number,
+.recommendation-rank {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.section-heading > span {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 3rem;
+}
+
+.dashboard-progress-grid,
+.recommendation-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-progress-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.dashboard-progress-grid > li,
+.recommendation-list > li,
+.dashboard-empty {
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-ink), transparent 70%);
+  background: var(--color-surface);
+}
+
+.dashboard-progress-grid h3,
+.recommendation-list h3,
+.dashboard-empty h2 {
+  margin-block-start: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.6rem;
+}
+
+.dashboard-progress-grid progress {
+  width: 100%;
+  height: 1rem;
+  accent-color: var(--color-accent);
+}
+
+.progress-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.catalog-version-note,
+.reason-label {
+  color: var(--color-muted);
+}
+
+.recommendation-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.recommendation-list > li {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+}
+
+.recommendation-list > .recommendation-primary {
+  grid-row: span 2;
+  border-block-start: 0.4rem solid var(--color-accent);
+}
+
+.recommendation-list details {
+  margin-block: var(--space-1);
+}
+
+.recommendation-list summary {
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.recommendation-evidence {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.recommendation-evidence > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-block: 0.25rem;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-ink), transparent 82%);
+}
+
+.recommendation-evidence dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.dashboard-actions,
+.dashboard-records {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.dashboard-records > .section-heading {
+  flex: 1 0 100%;
+}
+
+.dashboard-records > div:not(.section-heading) {
+  flex: 1 1 18rem;
+  padding: var(--space-2);
+  background: var(--color-surface);
+}
+
+.credentials-page {
+  max-width: none;
+}
+
+.credentials-page h1 {
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+}
+
+.credentials-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 0.7fr);
+  align-items: end;
+  gap: var(--space-4);
+  padding-block-end: var(--space-4);
+  border-block-end: 1px solid var(--color-muted);
+}
+
+.credentials-layout {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(0, 1.4fr);
+  align-items: start;
+  gap: var(--space-4);
+  padding-block: var(--space-4);
+}
+
+.credential-form {
+  position: sticky;
+  inset-block-start: var(--space-2);
+  max-width: none;
+}
+
+.credential-form fieldset {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+.credential-form legend,
+.credentials-page h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.65rem, 4vw, 2.5rem);
+  font-weight: 700;
+}
+
+.credential-form small,
+.self-declared-note {
+  color: var(--color-muted);
+}
+
+.field-error {
+  color: var(--color-focus);
+  font-weight: 700;
+}
+
+.certification-history,
+.achievement-grid {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.certification-history > li,
+.achievement-grid > li,
+.credential-empty {
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-ink), transparent 70%);
+  background: var(--color-surface);
+}
+
+.certification-history h3,
+.achievement-grid h3,
+.credential-empty h3 {
+  margin-block-start: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.4rem;
+}
+
+.certification-history button {
+  margin-block-start: var(--space-1);
+}
+
+.self-declared-label {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.credentials-achievements {
+  max-width: none;
+  padding-block: var(--space-4);
+  border-block-start: 1px solid var(--color-muted);
+}
+
+.achievement-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.achievement-mark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  color: var(--color-accent);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -406,6 +693,117 @@ td {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.25fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.admin-shell > aside {
+  position: sticky;
+  inset-block-start: var(--space-2);
+  padding: var(--space-2);
+  border-block-start: 0.35rem solid var(--color-accent);
+  background: var(--color-surface);
+}
+
+.admin-shell > aside nav {
+  display: grid;
+}
+
+.admin-mark,
+.lifecycle-state {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.admin-catalog-page,
+.admin-section {
+  max-width: none;
+}
+
+.admin-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 0.7fr);
+  align-items: end;
+  gap: var(--space-4);
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--color-muted);
+}
+
+.admin-intro h1 {
+  font-size: clamp(2.5rem, 7vw, 5rem);
+}
+
+.publication-guidance {
+  padding: var(--space-2);
+  border-inline-start: 0.3rem solid var(--color-focus);
+  background: var(--color-surface);
+}
+
+.admin-section {
+  padding-block: var(--space-4);
+  border-block-end: 1px solid color-mix(in srgb, var(--color-ink), transparent 75%);
+}
+
+.admin-section > h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.admin-section form {
+  max-width: 52rem;
+}
+
+.admin-section form h3,
+.admin-section form h4 {
+  margin-block: var(--space-1);
+}
+
+.admin-actions,
+.step-order-actions,
+.step-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.admin-actions button,
+.step-order-actions button,
+.step-toolbar button {
+  margin: 0;
+}
+
+.step-toolbar {
+  justify-content: space-between;
+  margin-block-start: var(--space-3);
+}
+
+.draft-steps {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.draft-steps fieldset,
+.admin-section form > fieldset {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-muted);
+}
+
+.draft-steps legend,
+.admin-section form > fieldset legend {
+  color: var(--color-accent);
+  font-weight: 800;
 }
 
 .check-field {
@@ -466,6 +864,27 @@ td {
 
   .progress-summary {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-intro,
+  .credentials-intro,
+  .credentials-layout,
+  .recommendation-list,
+  .admin-shell,
+  .admin-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell > aside {
+    position: static;
+  }
+
+  .credential-form {
+    position: static;
+  }
+
+  .recommendation-list > .recommendation-primary {
+    grid-row: auto;
   }
 }
 
