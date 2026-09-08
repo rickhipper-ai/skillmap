@@ -3,13 +3,14 @@ import { Type } from '@sinclair/typebox';
 const Uuid = Type.String({ format: 'uuid' });
 const Email = Type.String({ format: 'email', maxLength: 320 });
 const Password = Type.String({ minLength: 12, maxLength: 128 });
+const PersonName = Type.String({ minLength: 1, maxLength: 120, pattern: '.*\\S.*' });
 
 export const CsrfHeadersSchema = Type.Object({
   'x-csrf-token': Type.String({ minLength: 32 }),
 });
 
 export const RegistrationSchema = Type.Object(
-  { email: Email, password: Password, acceptTerms: Type.Literal(true) },
+  { name: PersonName, email: Email, password: Password, acceptTerms: Type.Literal(true) },
   { additionalProperties: false },
 );
 export const EmailRequestSchema = Type.Object({ email: Email }, { additionalProperties: false });
@@ -47,8 +48,9 @@ export const ProfileInputSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const PendingRegistrationSchema = Type.Object({
-  status: Type.Literal('pending_verification'),
+export const RegistrationResultSchema = Type.Object({
+  status: Type.Union([Type.Literal('pending_verification'), Type.Literal('active')]),
+  emailVerification: Type.Union([Type.Literal('required'), Type.Literal('automatic')]),
 });
 export const ProfileResponseSchema = Type.Object({
   displayName: Type.String(),

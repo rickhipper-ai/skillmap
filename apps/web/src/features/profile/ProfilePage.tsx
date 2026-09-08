@@ -1,30 +1,19 @@
-import { useEffect, useState } from 'react';
-
-import { identityRequest } from '../identity/api';
+import { useAuthenticatedUser } from '../identity/AuthenticatedLayout';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { ProfileForm, type ProfileValue } from './ProfileForm';
 
-interface CurrentUser {
-  profile: ProfileValue | null;
-}
-
 export function ProfilePage() {
-  const [profile, setProfile] = useState<ProfileValue | null>();
-  const [loadFailed, setLoadFailed] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    void identityRequest<CurrentUser>('/v1/users/me', { method: 'GET' })
-      .then((user) => {
-        if (active) setProfile(user?.profile ?? null);
-      })
-      .catch(() => {
-        if (active) setLoadFailed(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { profile } = useAuthenticatedUser();
+  const initialProfile: ProfileValue | null = profile
+    ? {
+        displayName: profile.displayName ?? '',
+        currentRoleId: profile.currentRoleId ?? null,
+        desiredRoleId: profile.desiredRoleId ?? null,
+        experienceLevel: profile.experienceLevel ?? 'beginner',
+        interestCategoryIds: profile.interestCategoryIds ?? [],
+        interestSkillIds: profile.interestSkillIds ?? [],
+      }
+    : null;
 
   return (
     <section className="flow-page profile-page">
@@ -33,11 +22,10 @@ export function ProfilePage() {
       <p>
         Preencha nome e experiencia. Funcao desejada e interesses melhoram futuras recomendacoes.
       </p>
-      {profile === undefined && !loadFailed ? <p role="status">Carregando perfil...</p> : null}
-      {loadFailed ? (
-        <p role="alert">Nao foi possivel carregar o perfil. Voce ainda pode tentar salva-lo.</p>
-      ) : null}
-      <ProfileForm key={profile ? JSON.stringify(profile) : 'empty'} initialProfile={profile} />
+      <ProfileForm
+        key={initialProfile ? JSON.stringify(initialProfile) : 'empty'}
+        initialProfile={initialProfile}
+      />
       <DeleteAccountDialog />
     </section>
   );

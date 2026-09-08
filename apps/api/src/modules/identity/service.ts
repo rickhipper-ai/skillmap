@@ -28,16 +28,17 @@ export class IdentityService {
     readonly repository: IdentityRepository,
     readonly auth: SkillMapsAuth,
     private readonly audit: AuditService,
+    private readonly autoVerifyEmail = false,
   ) {}
 
-  async register(input: { email: string; password: string }) {
+  async register(input: { name: string; email: string; password: string }) {
     const email = normalizeEmail(input.email);
     if (await this.repository.emailExists(email)) {
       throw new HttpProblem({ status: 409, title: 'Conflict', code: 'EMAIL_ALREADY_REGISTERED' });
     }
     try {
       await this.auth.api.signUpEmail({
-        body: { name: '', email, password: input.password },
+        body: { name: input.name.trim(), email, password: input.password },
       });
     } catch (error) {
       if (error instanceof APIError && error.status === 'UNPROCESSABLE_ENTITY') {
@@ -53,7 +54,9 @@ export class IdentityService {
       eventType: 'registration_created',
       outcome: 'success',
     });
-    return { status: 'pending_verification' as const };
+    return this.autoVerifyEmail
+      ? ({ status: 'active', emailVerification: 'automatic' } as const)
+      : ({ status: 'pending_verification', emailVerification: 'required' } as const);
   }
 
   async requestVerification(email: string): Promise<void> {

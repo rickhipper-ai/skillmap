@@ -11,6 +11,7 @@ COPY packages/api-contract/package.json packages/api-contract/package.json
 RUN pnpm install --frozen-lockfile
 
 COPY apps/api apps/api
+COPY database/migrations database/migrations
 RUN pnpm --filter @skill-maps/api build \
     && pnpm --filter @skill-maps/api deploy --legacy --prod /opt/skill-maps-api
 
@@ -21,6 +22,7 @@ ENV NODE_ENV=production \
     PORT=3000
 WORKDIR /app
 COPY --from=build --chown=node:node /opt/skill-maps-api/ ./
+COPY --from=build --chown=node:node /workspace/database/migrations /database/migrations
 
 USER node
 EXPOSE 3000

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx watch --env-file=.env src/server.ts",
-    "migrate": "tsx --env-file=.env src/commands/migrate.ts",
+    "migrate": "tsx --env-file-if-exists=.env src/commands/migrate.ts",
     "start": "node dist/src/server.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

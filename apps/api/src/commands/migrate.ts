@@ -4,7 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { Pool } from 'pg';
 
-import { readEnvironment } from '../config/environment.js';
+import { readMigrationDatabaseUrl } from '../config/environment.js';
 
 const defaultMigrationsDirectory = fileURLToPath(
   new URL('../../../../database/migrations/', import.meta.url),
@@ -62,8 +62,7 @@ export async function runMigrations(
 }
 
 async function main() {
-  const environment = readEnvironment();
-  const pool = new Pool({ connectionString: environment.migrationDatabaseUrl });
+  const pool = new Pool({ connectionString: readMigrationDatabaseUrl() });
   try {
     await runMigrations(pool);
   } finally {

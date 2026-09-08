@@ -1,10 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import type { CurrentUser } from '@skill-maps/api-contract';
+import { useQueryClient } from '@tanstack/react-query';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { identityRequest } from './api';
+import { currentUserQueryKey, identityRequest } from './api';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -12,10 +17,17 @@ export function LoginPage() {
     const data = new FormData(event.currentTarget);
     setStatus('loading');
     try {
-      await identityRequest('/v1/sessions', {
+      const user = await identityRequest<CurrentUser>('/v1/sessions', {
         body: { email: data.get('email'), password: data.get('password') },
       });
-      await navigate('/perfil');
+      if (!user) throw new Error('Session response is empty');
+      queryClient.setQueryData(currentUserQueryKey, user);
+      const requestedPath = searchParams.get('returnTo');
+      const returnTo =
+        requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+          ? requestedPath
+          : '/painel';
+      await navigate(returnTo, { replace: true });
     } catch {
       setStatus('error');
     }
@@ -44,7 +56,17 @@ export function LoginPage() {
       {status === 'error' ? (
         <p role="alert">E-mail ou senha invalidos, ou conta ainda nao confirmada.</p>
       ) : null}
-      <Link to="/recuperar-acesso">Esqueci minha senha</Link>
+      {typeof location.state === 'object' &&
+      location.state !== null &&
+      'message' in location.state ? (
+        <p role="status">{String(location.state.message)}</p>
+      ) : null}
+      <p>
+        Ainda não tem conta? <Link to="/cadastro">Criar conta</Link>
+      </p>
+      <p>
+        <Link to="/recuperar-acesso">Esqueci minha senha</Link>
+      </p>
     </section>
   );
 }

@@ -21,6 +21,10 @@ test('user starts, advances, corrects, and sees current-publication progress', a
   await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
+    if (path.endsWith('/users/me'))
+      return route.fulfill({
+        json: { id: 'e2e-user', status: 'active', roles: ['user'], profile: null },
+      });
     if (path.endsWith('/security/csrf-token'))
       return route.fulfill({ json: { token: 'x'.repeat(32) } });
     if (path.endsWith(`/trails/${ids.trail}`) && !path.includes('/me/'))

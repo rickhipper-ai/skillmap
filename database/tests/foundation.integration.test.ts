@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 
 import { withPostgres } from '../../apps/api/tests/support/postgres.js';
+import { runMigrations } from '../../apps/api/src/commands/migrate.js';
 
 const migrationUrl = new URL('../migrations/0001_foundation.sql', import.meta.url);
 
@@ -38,6 +39,16 @@ describe.runIf(process.env.SKILL_MAPS_DATABASE_TESTS === '1')(
             "INSERT INTO background_job_attempts (job_id, attempt_number, started_at) VALUES ('00000000-0000-0000-0000-000000000000', 1, now())",
           ),
         ).rejects.toMatchObject({ code: '23503' });
+      });
+    });
+
+    it('applies all reviewed migrations to a clean database and can be rerun', async () => {
+      await withPostgres(async ({ admin }) => {
+        await runMigrations(admin);
+        const migrations = await admin.query<{ count: string }>(
+          'SELECT count(*)::text AS count FROM schema_migrations',
+        );
+        expect(migrations.rows[0]?.count).toBe('8');
       });
     });
 

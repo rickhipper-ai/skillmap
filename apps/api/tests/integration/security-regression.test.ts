@@ -65,6 +65,7 @@ describe.runIf(process.env.SKILL_MAPS_DATABASE_TESTS === '1')(
             method: 'POST',
             url: '/v1/registrations',
             payload: {
+              name: 'Pessoa Pendente',
               email: 'pending-security@example.test',
               password: 'Senha-ficticia-123!',
               acceptTerms: true,

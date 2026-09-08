@@ -42,15 +42,19 @@ describe.runIf(process.env.SKILL_MAPS_DATABASE_TESTS === '1')(
           const registration = await mutate(app, proof, {
             method: 'POST',
             url: '/v1/registrations',
-            payload: { email: address, password, acceptTerms: true },
+            payload: { name: 'Pessoa Ciclo', email: address, password, acceptTerms: true },
           });
           expect(registration.statusCode).toBe(201);
+          expect(registration.json()).toEqual({
+            status: 'pending_verification',
+            emailVerification: 'required',
+          });
           expect(registration.headers['set-cookie'] ?? '').not.toContain('skillmaps-session');
 
           const duplicateRegistration = await mutate(app, proof, {
             method: 'POST',
             url: '/v1/registrations',
-            payload: { email: address, password, acceptTerms: true },
+            payload: { name: 'Pessoa Ciclo', email: address, password, acceptTerms: true },
           });
           expect(duplicateRegistration.statusCode).toBe(409);
           expect(duplicateRegistration.json()).toMatchObject({
@@ -169,6 +173,59 @@ describe.runIf(process.env.SKILL_MAPS_DATABASE_TESTS === '1')(
               })
             ).statusCode,
           ).toBe(401);
+        } finally {
+          await app.close();
+        }
+      });
+    }, 120_000);
+
+    it('auto-verifies and creates the initial profile only when demo mode is enabled', async () => {
+      await withPostgres(async ({ admin, database }) => {
+        const email = new CapturingEmail();
+        const app = createDatabaseApp(database, email, undefined, true);
+        const proof = await csrf(app);
+        const address = 'cadastro.demo@example.test';
+        const password = 'Senha-ficticia-123!';
+        try {
+          const registration = await mutate(app, proof, {
+            method: 'POST',
+            url: '/v1/registrations',
+            payload: { name: 'Pessoa Demo', email: address, password, acceptTerms: true },
+          });
+          expect(registration.statusCode).toBe(201);
+          expect(registration.json()).toEqual({
+            status: 'active',
+            emailVerification: 'automatic',
+          });
+          expect(email.messages).toHaveLength(0);
+
+          const persisted = await admin.query<{
+            email_verified: boolean;
+            status: string;
+            display_name: string;
+            password: string;
+          }>(
+            `SELECT users.email_verified, users.status, profile.display_name, account.password
+             FROM users
+             JOIN professional_profiles profile ON profile.user_id = users.id
+             JOIN auth_accounts account ON account.user_id = users.id
+             WHERE users.email_normalized = $1 AND account.provider_id = 'credential'`,
+            [address],
+          );
+          expect(persisted.rows[0]).toMatchObject({
+            email_verified: true,
+            status: 'active',
+            display_name: 'Pessoa Demo',
+          });
+          expect(persisted.rows[0]?.password).toMatch(/^\$argon2id\$/);
+
+          const login = await mutate(app, proof, {
+            method: 'POST',
+            url: '/v1/sessions',
+            payload: { email: address, password },
+          });
+          expect(login.statusCode).toBe(201);
+          expect(String(login.headers['set-cookie'])).toContain('__Host-skillmaps-session=');
         } finally {
           await app.close();
         }

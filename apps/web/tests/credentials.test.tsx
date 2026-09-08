@@ -39,7 +39,7 @@ describe('credentials experience', () => {
       <App router={createAppRouter({ initialEntries: ['/credenciais'] })} />,
     );
 
-    expect(screen.getByRole('status')).toHaveTextContent(/carregando credenciais/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/verificando sua sessao/i);
     expect(
       await screen.findByRole('heading', { name: 'Certificacoes e conquistas' }),
     ).toBeVisible();
@@ -105,7 +105,10 @@ describe('credentials experience', () => {
   it('provides actionable empty, field validation, and retryable error states', async () => {
     const user = userEvent.setup();
     let offline = true;
-    const fetchMock = vi.fn(async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      if (String(input).includes('/users/me')) {
+        return Response.json({ id: 'user-id', status: 'active', roles: ['user'], profile: null });
+      }
       if (offline) throw new Error('offline');
       return Response.json([]);
     });

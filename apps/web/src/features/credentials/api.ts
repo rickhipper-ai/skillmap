@@ -5,10 +5,7 @@ import type {
 } from '@skill-maps/api-contract';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { mapProblemDetails } from '../../services/api-client';
-
-const apiBaseUrl =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '/api';
+import { apiBaseUrl, mapProblemDetails } from '../../services/api-client';
 
 async function responseJson<T>(response: Response): Promise<T> {
   if (!response.ok) throw mapProblemDetails(await response.json().catch(() => undefined));

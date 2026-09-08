@@ -8,6 +8,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "argon2": "^0.45.1"
+  },
   "devDependencies": {
     "@testcontainers/postgresql": "^12.1.0",
     "@types/node": "^24.10.13",

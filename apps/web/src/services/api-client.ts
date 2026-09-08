@@ -1,5 +1,9 @@
 import { client } from '@skill-maps/api-contract';
 
+import { readWebEnvironment } from '../app/environment';
+
+export const apiBaseUrl = readWebEnvironment().apiBaseUrl;
+
 export interface ProblemDetails {
   type: string;
   title: string;

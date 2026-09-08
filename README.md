@@ -44,13 +44,16 @@ Copy-Item apps/api/.env.example apps/api/.env
 Copy-Item apps/web/.env.example apps/web/.env
 docker compose up -d postgres mailpit
 corepack pnpm db:migrate
+$env:DEMO_USER_EMAIL='demo@skill-maps.local'
+$env:DEMO_USER_PASSWORD='<defina-uma-senha-exclusiva-para-demo>'
 corepack pnpm db:seed:mvp
 corepack pnpm dev
 ```
 
 O Vite carrega `apps/web/.env`; os scripts locais da API carregam `apps/api/.env`. Aguarde o healthcheck
 do PostgreSQL antes da migration. A migration usa `MIGRATION_DATABASE_URL` e deve rodar uma vez por
-release, antes de iniciar a nova API. A API usa somente `DATABASE_URL` em runtime.
+release, antes de iniciar a nova API. A seed tambem exige essa URL privilegiada. A API usa somente
+`DATABASE_URL` em runtime; `MIGRATION_DATABASE_URL` nao precisa ser exposta ao processo da API.
 
 Para encerrar os servicos locais sem apagar o volume:
 
@@ -70,18 +73,48 @@ Nao execute `docker compose down --volumes` em um ambiente com dados que devam s
 | `HOST` / `PORT`                         | nao         | bind da API; padroes `127.0.0.1` e `3000`                                  |
 | `WEB_ORIGIN`                            | sim         | origem web exata aceita por CORS e CSRF                                    |
 | `DATABASE_URL`                          | sim         | conexao do papel de runtime                                                |
-| `MIGRATION_DATABASE_URL`                | sim         | conexao privilegiada usada somente pelo comando de migration               |
+| `MIGRATION_DATABASE_URL`                | nos jobs    | conexao privilegiada usada somente pelos comandos de migration e seed      |
+| `DATABASE_RUNTIME_ROLE`                 | nao         | role aplicada com `SET ROLE`; use `skill_maps_runtime` no Docker local     |
 | `DATABASE_CONNECTION_TIMEOUT_MS`        | nao         | limite para obter conexao; padrao 5000                                     |
 | `DATABASE_QUERY_TIMEOUT_MS`             | nao         | limites cliente/servidor por query; padrao 10000                           |
 | `DATABASE_POOL_MAX`                     | nao         | conexoes por instancia; padrao 10, deve respeitar o limite global do banco |
 | `JOB_POLL_INTERVAL_MS`                  | nao         | intervalo do worker no processo da API; padrao 1000                        |
 | `AUTH_SECRET`                           | sim         | segredo aleatorio com no minimo 32 caracteres                              |
+| `DEMO_AUTO_VERIFY_EMAIL`                | nao         | confirma cadastros sem SMTP em demo/dev; padrao `false`                    |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_FROM` | nao         | entrega transacional; padroes locais apontam para Mailpit                  |
 | `OTEL_SERVICE_NAME`                     | nao         | nome OpenTelemetry; padrao `skill-maps-api`                                |
 | `LOG_LEVEL`                             | nao         | nivel Pino; padrao `info`                                                  |
+| `DEMO_USER_EMAIL`                       | na seed     | e-mail exclusivo da conta de contingencia                                  |
+| `DEMO_USER_PASSWORD`                    | na seed     | senha demo com ao menos 12 caracteres; nunca versionar o valor real        |
 
 Exportadores OpenTelemetry usam as variaveis padrao do SDK na plataforma. Nao ha credencial de
 telemetria no repositorio.
+
+### PostgreSQL remoto e demonstracao
+
+Configure `DATABASE_URL` com a credencial usada pela API e `MIGRATION_DATABASE_URL` com a credencial
+capaz de criar extensoes, roles e objetos do schema. URLs `postgres://` e `postgresql://`, inclusive
+com parametros TLS do provedor, sao aceitas. Para manter a separacao de privilegios em um banco remoto,
+conceda `skill_maps_runtime` ao usuario de `DATABASE_URL` e configure `DATABASE_RUNTIME_ROLE` com esse
+nome. Se o provedor nao oferecer principals separados, omita `DATABASE_RUNTIME_ROLE`; a API usara
+diretamente as permissoes do usuario da URL.
+
+Com as variaveis injetadas pelo ambiente ou secret manager, execute:
+
+```powershell
+corepack pnpm db:migrate
+corepack pnpm db:seed:mvp
+```
+
+A seed e transacional e idempotente. Ela atualiza o hash Argon2id da conta DEMO com
+`DEMO_USER_PASSWORD`, sem registrar a senha, e cria catalogo, perfil, interesses, trilhas concluida e
+em andamento, progresso, certificacao, conquistas e recomendacao. Use credenciais exclusivas e remova
+ou desabilite a conta depois da demonstracao.
+
+`DEMO_AUTO_VERIFY_EMAIL=true` evita SMTP apenas em `development` ou `test`: novos usuarios sao marcados
+como confirmados, recebem o perfil inicial e podem entrar imediatamente. Com o valor ausente ou `false`,
+o token de confirmacao e enviado normalmente. A API recusa inicializar em `production` quando o valor e
+`true`, portanto a regra normal de confirmacao permanece obrigatoria em producao.
 
 ### Web e Compose
 

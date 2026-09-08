@@ -24,7 +24,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 export const getCsrfToken = <ThrowOnError extends boolean = false>(options?: Options<GetCsrfTokenData, ThrowOnError>): RequestResult<GetCsrfTokenResponses, GetCsrfTokenErrors, ThrowOnError> => (options?.client ?? client).get<GetCsrfTokenResponses, GetCsrfTokenErrors, ThrowOnError>({ url: '/v1/security/csrf-token', ...options });
 
 /**
- * Register a pending user account
+ * Register a user account
  */
 export const registerUser = <ThrowOnError extends boolean = false>(options: Options<RegisterUserData, ThrowOnError>): RequestResult<RegisterUserResponses, RegisterUserErrors, ThrowOnError> => (options.client ?? client).post<RegisterUserResponses, RegisterUserErrors, ThrowOnError>({
     url: '/v1/registrations',

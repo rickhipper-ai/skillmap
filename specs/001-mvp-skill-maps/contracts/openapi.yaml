@@ -46,7 +46,7 @@ paths:
   /v1/registrations:
     post:
       tags: [Identity]
-      summary: Register a pending user account
+      summary: Register a user account
       operationId: registerUser
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -57,10 +57,10 @@ paths:
             schema: { $ref: '#/components/schemas/RegistrationRequest' }
       responses:
         '201':
-          description: Pending account created; no session is issued.
+          description: Account created; no session is issued.
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/PendingRegistration' }
+              schema: { $ref: '#/components/schemas/RegistrationResult' }
         '409': { $ref: '#/components/responses/Problem' }
         '422': { $ref: '#/components/responses/ValidationProblem' }
         '429': { $ref: '#/components/responses/Problem' }
@@ -817,16 +817,18 @@ components:
     RegistrationRequest:
       type: object
       additionalProperties: false
-      required: [email, password, acceptTerms]
+      required: [name, email, password, acceptTerms]
       properties:
+        name: { type: string, minLength: 1, maxLength: 120, pattern: '.*\S.*' }
         email: { type: string, format: email, maxLength: 320 }
         password: { type: string, minLength: 12, maxLength: 128 }
         acceptTerms: { const: true }
-    PendingRegistration:
+    RegistrationResult:
       type: object
-      required: [status]
+      required: [status, emailVerification]
       properties:
-        status: { const: pending_verification }
+        status: { type: string, enum: [pending_verification, active] }
+        emailVerification: { type: string, enum: [required, automatic] }
     ProfileInput:
       type: object
       additionalProperties: false

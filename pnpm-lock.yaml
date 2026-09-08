@@ -162,6 +162,10 @@ importers:
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
   database:
+    dependencies:
+      argon2:
+        specifier: ^0.45.1
+        version: 0.45.1
     devDependencies:
       '@testcontainers/postgresql':
         specifier: ^12.1.0

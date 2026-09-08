@@ -16,7 +16,7 @@
     "contract:generate": "corepack pnpm --filter @skill-maps/api-contract generate",
     "contract:sync": "corepack pnpm --filter @skill-maps/api-contract sync",
     "contract:validate": "corepack pnpm --filter @skill-maps/api-contract validate",
-    "db:seed:mvp": "corepack pnpm --filter @skill-maps/api exec tsx --env-file=.env ../../database/seeds/mvp-catalog.ts",
+    "db:seed:mvp": "corepack pnpm --filter @skill-maps/api exec tsx --env-file-if-exists=.env ../../database/seeds/mvp-catalog.ts",
     "db:migrate": "corepack pnpm --filter @skill-maps/api migrate",
     "dev": "corepack pnpm --parallel --filter @skill-maps/api --filter @skill-maps/web dev",
     "format": "prettier --write .",

@@ -156,11 +156,19 @@ describe('trail progress experience', () => {
   });
 
   it('renders loading and retryable error states', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: string | URL | Request) => {
+        if (String(input).includes('/users/me')) {
+          return Response.json({ id: 'user-id', status: 'active', roles: ['user'], profile: null });
+        }
+        throw new Error('offline');
+      }),
+    );
     render(
       <App router={createAppRouter({ initialEntries: [`/progresso/trilhas/${ids.trail}`] })} />,
     );
-    expect(screen.getByRole('status')).toHaveTextContent(/carregando progresso/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/verificando sua sessao/i);
     expect(await screen.findByRole('alert')).toHaveTextContent(/nao foi possivel carregar/i);
     expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument();
   });

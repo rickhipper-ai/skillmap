@@ -100,7 +100,14 @@ describe.runIf(process.env.SKILL_MAPS_DATABASE_TESTS === '1')(
             url: '/v1/users/me',
             headers: { cookie: otherCookie },
           });
-          expect(otherProfile.json()).toMatchObject({ profile: null });
+          expect(otherProfile.json()).toMatchObject({
+            profile: {
+              displayName: 'perfil.b',
+              experienceLevel: 'beginner',
+              interestCategoryIds: [],
+              interestSkillIds: [],
+            },
+          });
 
           const massAssignment = await mutate(
             app,

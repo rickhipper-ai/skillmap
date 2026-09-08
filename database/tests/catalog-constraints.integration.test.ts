@@ -2,8 +2,9 @@ import { readFile } from 'node:fs/promises';
 
 import { describe, expect, it } from 'vitest';
 
+import { createDatabaseApp, csrf, mutate } from '../../apps/api/tests/support/identity.js';
 import { withPostgres } from '../../apps/api/tests/support/postgres.js';
-import { seedMvpCatalog } from '../seeds/mvp-catalog.js';
+import { demoUserId, seedMvpCatalog } from '../seeds/mvp-catalog.js';
 
 const migrationUrl = new URL('../migrations/0003_catalog.sql', import.meta.url);
 
@@ -94,10 +95,14 @@ describe.runIf(process.env.SKILL_MAPS_DATABASE_TESTS === '1')(
       });
     });
 
-    it('seeds an idempotent fictitious catalog with a five-step trail and shared skills', async () => {
-      await withPostgres(async ({ admin }) => {
-        await seedMvpCatalog(admin);
-        await seedMvpCatalog(admin);
+    it('seeds an idempotent demo with catalog, authentication, progress, and dashboard data', async () => {
+      await withPostgres(async ({ admin, database }) => {
+        const demo = {
+          email: 'demo.integration@example.test',
+          password: 'Senha-demo-ficticia-123!',
+        };
+        await seedMvpCatalog(admin, demo);
+        await seedMvpCatalog(admin, demo);
 
         const steps = await admin.query<{ count: string }>(`
           SELECT count(*)::text AS count
@@ -113,11 +118,64 @@ describe.runIf(process.env.SKILL_MAPS_DATABASE_TESTS === '1')(
         const certifications = await admin.query<{ count: string }>(
           "SELECT count(*)::text AS count FROM certifications WHERE status = 'published'",
         );
+        const demoData = await admin.query<{
+          accounts: string;
+          achievements: string;
+          certification_records: string;
+          completed_trails: string;
+          progress_events: string;
+          recommendations: string;
+        }>(
+          `SELECT
+             (SELECT count(*) FROM auth_accounts WHERE user_id = $1)::text AS accounts,
+             (SELECT count(*) FROM progress_events WHERE user_id = $1)::text AS progress_events,
+             (SELECT count(*) FROM user_trail_states WHERE user_id = $1 AND status = 'completed')::text AS completed_trails,
+             (SELECT count(*) FROM user_certification_records WHERE user_id = $1)::text AS certification_records,
+             (SELECT count(*) FROM user_achievement_awards WHERE user_id = $1)::text AS achievements,
+             (SELECT count(*) FROM learning_recommendations WHERE user_id = $1)::text AS recommendations`,
+          [demoUserId],
+        );
 
         expect(steps.rows[0]?.count).toBe('5');
         expect(sharedSkills.rows[0]?.count).toBe('2');
         expect(certifications.rows[0]?.count).toBe('2');
+        expect(demoData.rows[0]).toEqual({
+          accounts: '1',
+          achievements: '2',
+          certification_records: '1',
+          completed_trails: '1',
+          progress_events: '6',
+          recommendations: '1',
+        });
+
+        const app = createDatabaseApp(database);
+        try {
+          const proof = await csrf(app);
+          const login = await mutate(app, proof, {
+            method: 'POST',
+            url: '/v1/sessions',
+            payload: demo,
+          });
+          expect(login.statusCode).toBe(201);
+          const rawCookie = login.headers['set-cookie'];
+          const cookie =
+            (Array.isArray(rawCookie) ? rawCookie[0] : rawCookie)?.split(';', 1)[0] ?? '';
+          const dashboard = await app.inject({
+            method: 'GET',
+            url: '/v1/me/dashboard',
+            headers: { cookie },
+          });
+          expect(dashboard.statusCode).toBe(200);
+          expect(dashboard.json()).toMatchObject({
+            activeTrails: [{ trailId: '40000000-0000-4000-8000-000000000002' }],
+            certificationRecords: [{ certificationId: '50000000-0000-4000-8000-000000000001' }],
+            achievements: [{ achievementId: '70000000-0000-4000-8000-000000000001' }],
+            recommendations: [{ trailId: '40000000-0000-4000-8000-000000000002' }],
+          });
+        } finally {
+          await app.close();
+        }
       });
-    });
+    }, 120_000);
   },
 );

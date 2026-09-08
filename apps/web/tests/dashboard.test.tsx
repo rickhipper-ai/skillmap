@@ -49,12 +49,15 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('dashboard experience', () => {
   it('renders progress, primary recommendation evidence, and an accessible action', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(dashboard)));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json(dashboard)),
+    );
     const ready = vi.fn();
     window.addEventListener('skillmaps:dashboard-view-ready', ready, { once: true });
     const { container } = render(<App router={createAppRouter({ initialEntries: ['/painel'] })} />);
 
-    expect(screen.getByRole('status')).toHaveTextContent(/carregando painel/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/verificando sua sessao/i);
     expect(await screen.findByRole('heading', { name: 'Seu painel' })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Engenharia de dados' })).toBeInTheDocument();
     expect(screen.getByText('50% concluido')).toBeInTheDocument();
@@ -76,7 +79,7 @@ describe('dashboard experience', () => {
   it('labels one primary trail and no more than two ordered alternatives', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
+      vi.fn(async () =>
         Response.json({
           ...dashboard,
           activeTrails: [],
@@ -106,16 +109,21 @@ describe('dashboard experience', () => {
 
   it('provides actionable empty, retryable error, and loading states', async () => {
     const user = userEvent.setup();
-    const fetchMock = vi
-      .fn()
-      .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce(
-        Response.json({ ...dashboard, activeTrails: [], recommendations: [] }),
-      );
+    let offline = true;
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      if (String(input).includes('/users/me')) {
+        return Response.json({ id: 'user-id', status: 'active', roles: ['user'], profile: null });
+      }
+      if (offline) {
+        offline = false;
+        throw new Error('offline');
+      }
+      return Response.json({ ...dashboard, activeTrails: [], recommendations: [] });
+    });
     vi.stubGlobal('fetch', fetchMock);
     render(<App router={createAppRouter({ initialEntries: ['/painel'] })} />);
 
-    expect(screen.getByRole('status')).toHaveTextContent(/carregando painel/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/verificando sua sessao/i);
     expect(await screen.findByRole('alert')).toHaveTextContent(/nao foi possivel carregar/i);
     await user.click(screen.getByRole('button', { name: 'Tentar novamente' }));
     expect(

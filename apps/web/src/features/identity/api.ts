@@ -1,7 +1,8 @@
-import { mapProblemDetails } from '../../services/api-client';
+import type { CurrentUser } from '@skill-maps/api-contract';
 
-const apiBaseUrl =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '/api';
+import { apiBaseUrl, mapProblemDetails } from '../../services/api-client';
+
+export const currentUserQueryKey = ['current-user'] as const;
 
 async function csrfToken(): Promise<string> {
   const response = await fetch(`${apiBaseUrl}/v1/security/csrf-token`, { credentials: 'include' });
@@ -13,12 +14,15 @@ export async function identityRequest<T>(
   path: string,
   options: { method?: string; body?: unknown; contentType?: string } = {},
 ): Promise<T | undefined> {
-  const token = await csrfToken();
+  const method = options.method ?? 'POST';
+  const token = ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase())
+    ? undefined
+    : await csrfToken();
   const response = await fetch(`${apiBaseUrl}${path}`, {
-    method: options.method ?? 'POST',
+    method,
     credentials: 'include',
     headers: {
-      'X-CSRF-Token': token,
+      ...(token ? { 'X-CSRF-Token': token } : {}),
       ...(options.body === undefined
         ? {}
         : { 'Content-Type': options.contentType ?? 'application/json' }),
@@ -34,4 +38,10 @@ export async function identityRequest<T>(
     return undefined;
   }
   return (await response.json()) as T;
+}
+
+export async function getCurrentUser(): Promise<CurrentUser> {
+  const user = await identityRequest<CurrentUser>('/v1/users/me', { method: 'GET' });
+  if (!user) throw new Error('Current user response is empty');
+  return user;
 }

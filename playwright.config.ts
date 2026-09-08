@@ -1,5 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const fullStack = process.env.SKILL_MAPS_FULL_STACK_E2E === '1';
+const webServer = {
+  command: 'corepack pnpm --filter @skill-maps/web dev --host localhost',
+  url: 'http://localhost:5173',
+  reuseExistingServer: !process.env.CI,
+};
+
 export default defineConfig({
   testDir: './tests/e2e',
   outputDir: './test-results',
@@ -7,13 +14,18 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   timeout: 120_000,
   workers: 1,
-  webServer: {
-    command: 'corepack pnpm --filter @skill-maps/web dev --host 127.0.0.1',
-    url: 'http://127.0.0.1:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: fullStack
+    ? [
+        {
+          command: 'corepack pnpm --filter @skill-maps/api dev',
+          url: 'http://127.0.0.1:3000/health/ready',
+          reuseExistingServer: !process.env.CI,
+        },
+        webServer,
+      ]
+    : webServer,
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:5173',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },

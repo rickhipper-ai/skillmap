@@ -114,11 +114,19 @@ describe('Better Auth identity facade', () => {
   it('delegates registration and login to Better Auth server APIs', async () => {
     const { api, service } = dependencies();
 
-    await service.register({ email: ' PESSOA@example.test ', password: 'Senha-ficticia-123!' });
+    await service.register({
+      name: ' Pessoa Delegada ',
+      email: ' PESSOA@example.test ',
+      password: 'Senha-ficticia-123!',
+    });
     const session = await service.login(' PESSOA@example.test ', 'Senha-ficticia-123!');
 
     expect(api.signUpEmail).toHaveBeenCalledWith({
-      body: { name: '', email: 'pessoa@example.test', password: 'Senha-ficticia-123!' },
+      body: {
+        name: 'Pessoa Delegada',
+        email: 'pessoa@example.test',
+        password: 'Senha-ficticia-123!',
+      },
     });
     expect(api.signInEmail).toHaveBeenCalledWith({
       body: {

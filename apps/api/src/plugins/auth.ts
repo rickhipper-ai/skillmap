@@ -231,6 +231,7 @@ function authOptions(
   secret: string,
   webOrigin: string,
   email: EmailPort,
+  autoVerifyEmail = false,
 ) {
   return {
     appName: 'SKILL MAPS',
@@ -242,7 +243,7 @@ function authOptions(
     emailAndPassword: {
       enabled: true,
       autoSignIn: false,
-      requireEmailVerification: true,
+      requireEmailVerification: !autoVerifyEmail,
       revokeSessionsOnPasswordReset: true,
       minPasswordLength: 12,
       maxPasswordLength: 128,
@@ -261,7 +262,7 @@ function authOptions(
       },
     },
     emailVerification: {
-      sendOnSignUp: true,
+      sendOnSignUp: !autoVerifyEmail,
       autoSignInAfterVerification: false,
     },
     plugins: [
@@ -369,6 +370,22 @@ function authOptions(
             await sql`INSERT INTO user_roles (user_id, role) VALUES (${user.id}, 'user') ON CONFLICT DO NOTHING`.execute(
               db,
             );
+            await sql`
+              INSERT INTO professional_profiles (user_id, display_name, experience_level)
+              VALUES (
+                ${user.id},
+                left(COALESCE(NULLIF(btrim(${user.name}), ''), 'Pessoa usuaria'), 120),
+                'beginner'
+              )
+              ON CONFLICT DO NOTHING
+            `.execute(db);
+            if (autoVerifyEmail) {
+              await sql`
+                UPDATE users
+                SET email_verified = true, status = 'active', email_verified_at = now(), updated_at = now()
+                WHERE id = ${user.id}
+              `.execute(db);
+            }
           },
         },
         update: {
@@ -426,8 +443,9 @@ export function createAuth(
   secret: string,
   webOrigin: string,
   email: EmailPort,
+  autoVerifyEmail = false,
 ) {
-  return betterAuth(authOptions(db, secret, webOrigin, email));
+  return betterAuth(authOptions(db, secret, webOrigin, email, autoVerifyEmail));
 }
 
 export type SkillMapsAuth = ReturnType<typeof createAuth>;

@@ -10,6 +10,7 @@ import { LoginPage } from '../features/identity/LoginPage';
 import { RegisterPage } from '../features/identity/RegisterPage';
 import { ResetPasswordPage } from '../features/identity/ResetPasswordPage';
 import { VerifyEmailPage } from '../features/identity/VerifyEmailPage';
+import { AuthenticatedLayout } from '../features/identity/AuthenticatedLayout';
 import { ProfilePage } from '../features/profile/ProfilePage';
 import { CatalogPage } from '../features/catalog/CatalogPage';
 import { CertificationDetailPage } from '../features/catalog/CertificationDetailPage';
@@ -54,6 +55,7 @@ function AppShell() {
           <Link to="/painel">Painel</Link>
           <Link to="/credenciais">Credenciais</Link>
           <Link to="/administracao">Administracao</Link>
+          <Link to="/cadastro">Criar conta</Link>
           <Link to="/entrar">Entrar</Link>
         </nav>
       </header>
@@ -71,6 +73,10 @@ function HomePage() {
       <p className="eyebrow">Desenvolvimento profissional</p>
       <h1 tabIndex={-1}>Seu proximo passo, com contexto</h1>
       <p>Explore habilidades e trilhas de aprendizagem em um mapa claro e auditavel.</p>
+      <div className="home-actions">
+        <Link to="/cadastro">Criar conta</Link>
+        <Link to="/catalogo">Explorar catalogo</Link>
+      </div>
     </section>
   );
 }
@@ -105,14 +111,19 @@ const routes = [
       { path: 'entrar', element: <LoginPage /> },
       { path: 'verificar-email', element: <VerifyEmailPage /> },
       { path: 'recuperar-acesso', element: <ResetPasswordPage /> },
-      { path: 'perfil', element: <ProfilePage /> },
-      { path: 'painel', element: <DashboardPage /> },
-      { path: 'credenciais', element: <CertificationRecordsPage /> },
-      { path: 'progresso/trilhas/:trailId', element: <TrailProgressPage /> },
       {
-        path: 'administracao',
-        element: <AdminLayout />,
-        children: [{ index: true, element: <AdminCatalogPage /> }],
+        element: <AuthenticatedLayout />,
+        children: [
+          { path: 'perfil', element: <ProfilePage /> },
+          { path: 'painel', element: <DashboardPage /> },
+          { path: 'credenciais', element: <CertificationRecordsPage /> },
+          { path: 'progresso/trilhas/:trailId', element: <TrailProgressPage /> },
+          {
+            path: 'administracao',
+            element: <AdminLayout />,
+            children: [{ index: true, element: <AdminCatalogPage /> }],
+          },
+        ],
       },
       { path: '*', element: <RouteErrorPage /> },
     ],

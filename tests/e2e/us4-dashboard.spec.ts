@@ -48,6 +48,11 @@ test('profile-based dashboard orders one primary trail and two alternatives', as
 });
 
 async function mockDashboard(page: import('@playwright/test').Page, body: unknown) {
+  await page.route('**/api/v1/users/me', (route) =>
+    route.fulfill({
+      json: { id: 'e2e-user', status: 'active', roles: ['user'], profile: null },
+    }),
+  );
   await page.route('**/api/v1/me/dashboard', (route) => route.fulfill({ json: body }));
 }
 

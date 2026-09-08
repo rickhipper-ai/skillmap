@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildApp } from '../../src/app.js';
+import { csrf } from '../support/identity.js';
 
 const apps = [] as ReturnType<typeof buildApp>[];
 
@@ -34,6 +35,7 @@ describe('canonical identity contract', () => {
       url: '/v1/registrations',
       headers: { origin: 'http://localhost:5173' },
       payload: {
+        name: 'Ana Ficticia',
         email: 'ana.ficticia@example.test',
         password: 'Senha-ficticia-123!',
         acceptTerms: true,
@@ -42,5 +44,29 @@ describe('canonical identity contract', () => {
 
     expect(response.statusCode).not.toBe(404);
     expect(response.headers['set-cookie'] ?? '').not.toContain('__Host-skillmaps-session');
+  });
+
+  it('rejects registration passwords outside the existing policy', async () => {
+    const app = buildApp();
+    apps.push(app);
+    const proof = await csrf(app);
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/registrations',
+      headers: {
+        origin: 'http://localhost:5173',
+        'x-csrf-token': proof.token,
+        cookie: proof.cookie,
+      },
+      payload: {
+        name: 'Ana Ficticia',
+        email: 'ana.ficticia@example.test',
+        password: 'curta',
+        acceptTerms: true,
+      },
+    });
+
+    expect(response.statusCode).toBe(422);
+    expect(response.json()).toMatchObject({ code: 'VALIDATION_FAILED' });
   });
 });

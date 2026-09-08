@@ -16,6 +16,11 @@ test('acquisition, duplicate, renewal, and one-time achievement journey', async 
   await page.route('**/api/v1/security/csrf-token', (route) =>
     route.fulfill({ json: { token: 'x'.repeat(32) } }),
   );
+  await page.route('**/api/v1/users/me', (route) =>
+    route.fulfill({
+      json: { id: 'e2e-user', status: 'active', roles: ['user'], profile: null },
+    }),
+  );
   await page.route('**/api/v1/me/achievements', (route) => route.fulfill({ json: awards }));
   await page.route('**/api/v1/me/certification-records', async (route, request) => {
     if (request.method() === 'GET') return route.fulfill({ json: records });

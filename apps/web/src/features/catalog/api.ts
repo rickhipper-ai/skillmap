@@ -1,9 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
-import { mapProblemDetails } from '../../services/api-client';
-
-const apiBaseUrl =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '/api';
+import { apiBaseUrl, mapProblemDetails } from '../../services/api-client';
 
 export type CatalogItemType = 'skill' | 'trail' | 'certification';
 

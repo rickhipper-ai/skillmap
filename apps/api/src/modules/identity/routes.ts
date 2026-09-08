@@ -12,7 +12,7 @@ import {
   DeletionReceiptSchema,
   EmailRequestSchema,
   PasswordResetSchema,
-  PendingRegistrationSchema,
+  RegistrationResultSchema,
   RegistrationSchema,
   SessionSchema,
   TokenSchema,
@@ -74,7 +74,7 @@ export function registerIdentityRoutes(
     request.currentUser = { id: session.userId, status: session.status, roles: session.roles };
   });
 
-  app.post<{ Body: { email: string; password: string; acceptTerms: true } }>(
+  app.post<{ Body: { name: string; email: string; password: string; acceptTerms: true } }>(
     '/v1/registrations',
     {
       config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
@@ -83,7 +83,7 @@ export function registerIdentityRoutes(
         operationId: 'registerUser',
         headers: CsrfHeadersSchema,
         body: RegistrationSchema,
-        response: { 201: PendingRegistrationSchema },
+        response: { 201: RegistrationResultSchema },
       },
     },
     async (request, reply) => {

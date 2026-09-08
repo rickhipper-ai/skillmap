@@ -1,10 +1,7 @@
 import type { Dashboard } from '@skill-maps/api-contract';
 import { useQuery } from '@tanstack/react-query';
 
-import { mapProblemDetails } from '../../services/api-client';
-
-const apiBaseUrl =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '/api';
+import { apiBaseUrl, mapProblemDetails } from '../../services/api-client';
 
 export function useDashboard() {
   return useQuery({

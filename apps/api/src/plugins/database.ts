@@ -90,6 +90,7 @@ export interface DatabasePoolOptions {
   idleTimeoutMillis?: number | undefined;
   max?: number | undefined;
   queryTimeoutMillis?: number | undefined;
+  runtimeRole?: string | undefined;
 }
 
 export function createDatabase(
@@ -99,7 +100,7 @@ export function createDatabase(
   const queryTimeoutMillis = options.queryTimeoutMillis ?? 10_000;
   const pool = new Pool({
     connectionString,
-    options: '-c role=skill_maps_runtime',
+    ...(options.runtimeRole ? { options: `-c role=${options.runtimeRole}` } : {}),
     connectionTimeoutMillis: options.connectionTimeoutMillis ?? 5_000,
     idleTimeoutMillis: options.idleTimeoutMillis ?? 30_000,
     max: options.max ?? 10,

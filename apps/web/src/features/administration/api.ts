@@ -1,7 +1,4 @@
-import { mapProblemDetails } from '../../services/api-client';
-
-const apiBaseUrl =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '/api';
+import { apiBaseUrl, mapProblemDetails } from '../../services/api-client';
 
 export interface AdminResource {
   id: string;
@@ -15,15 +12,6 @@ export interface Publication {
   revisionId: string;
   revisionNumber: number;
   publishedAt: string;
-}
-
-export async function getCurrentUser(): Promise<{ roles: string[] }> {
-  const response = await fetch(`${apiBaseUrl}/v1/users/me`, {
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
-  });
-  if (!response.ok) throw mapProblemDetails(await response.json().catch(() => undefined));
-  return (await response.json()) as { roles: string[] };
 }
 
 export async function adminMutation<T>(

@@ -26,6 +26,7 @@ export function createDatabaseApp(
   database: OwnedDatabase,
   email: EmailPort = new CapturingEmail(),
   providerCleanup?: ProviderCleanupPort,
+  demoAutoVerifyEmail = false,
 ) {
   return buildApp({
     database,
@@ -37,6 +38,7 @@ export function createDatabaseApp(
       port: 3000,
       webOrigin: testOrigin,
       authSecret: 'fictitious_test_auth_secret_at_least_32_chars',
+      demoAutoVerifyEmail,
     },
   });
 }
@@ -77,7 +79,7 @@ export async function registerVerifyAndLogin(
   const registration = await mutate(app, proof, {
     method: 'POST',
     url: '/v1/registrations',
-    payload: { email: address, password, acceptTerms: true },
+    payload: { name: 'Pessoa Ficticia', email: address, password, acceptTerms: true },
   });
   if (registration.statusCode !== 201) throw new Error(`Registration failed: ${registration.body}`);
   const verification = await mutate(app, proof, {

@@ -57,8 +57,10 @@ type AppEnvironment = Pick<Environment, 'nodeEnv' | 'host' | 'port' | 'webOrigin
       | 'databaseConnectionTimeoutMs'
       | 'databaseQueryTimeoutMs'
       | 'databasePoolMax'
+      | 'databaseRuntimeRole'
       | 'jobPollIntervalMs'
       | 'authSecret'
+      | 'demoAutoVerifyEmail'
       | 'smtpHost'
       | 'smtpPort'
       | 'emailFrom'
@@ -88,6 +90,7 @@ export function buildApp(options: BuildAppOptions = {}) {
           connectionTimeoutMillis: environment.databaseConnectionTimeoutMs,
           queryTimeoutMillis: environment.databaseQueryTimeoutMs,
           max: environment.databasePoolMax,
+          runtimeRole: environment.databaseRuntimeRole,
         })
       : undefined);
   const app = Fastify({
@@ -131,10 +134,23 @@ export function buildApp(options: BuildAppOptions = {}) {
             environment.emailFrom,
           ));
     const auth = environment.authSecret
-      ? createAuth(database.db, environment.authSecret, environment.webOrigin, email)
+      ? createAuth(
+          database.db,
+          environment.authSecret,
+          environment.webOrigin,
+          email,
+          environment.demoAutoVerifyEmail,
+        )
       : null;
     app.decorate('auth', auth);
-    identity = auth ? new IdentityService(identityRepository, auth, audit) : undefined;
+    identity = auth
+      ? new IdentityService(
+          identityRepository,
+          auth,
+          audit,
+          environment.demoAutoVerifyEmail ?? false,
+        )
+      : undefined;
     profiles = new ProfileService(new ProfileRepository(database.db), audit);
     erasure = identity ? new ErasureService(database.db, identity, audit) : undefined;
     const catalogRepository = new CatalogRepository(database.db);

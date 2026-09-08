@@ -1,17 +1,39 @@
 import { pathToFileURL } from 'node:url';
 
+import { hash } from 'argon2';
 import { Pool } from 'pg';
 
-export async function seedMvpCatalog(pool: Pool): Promise<void> {
-  const alreadySeeded = await pool.query(
-    "SELECT 1 FROM learning_trails WHERE id = '40000000-0000-4000-8000-000000000001'",
-  );
-  if (alreadySeeded.rowCount) return;
+export const demoUserId = '10000000-0000-4000-8000-000000000002';
+
+export interface DemoUserSeed {
+  email: string;
+  password: string;
+}
+
+export async function seedMvpCatalog(pool: Pool, demoUser: DemoUserSeed): Promise<void> {
+  const email = demoUser.email.trim().toLowerCase();
+  if (email.length > 320 || !/^[^\s@]+@[^\s@]+$/.test(email)) {
+    throw new Error('A valid DEMO_USER_EMAIL is required');
+  }
+  if (demoUser.password.length < 12 || demoUser.password.length > 128) {
+    throw new Error('DEMO_USER_PASSWORD must have between 12 and 128 characters');
+  }
+  const passwordHash = await hash(demoUser.password, {
+    type: 2,
+    memoryCost: 65_536,
+    timeCost: 3,
+    parallelism: 1,
+  });
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query(`
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('skill-maps-mvp-seed'))");
+    const alreadySeeded = await client.query(
+      "SELECT 1 FROM learning_trails WHERE id = '40000000-0000-4000-8000-000000000001'",
+    );
+    if (!alreadySeeded.rowCount) {
+      const catalogStatements = `
       INSERT INTO users (id, auth_name, email_normalized, email_verified, status, email_verified_at, terms_accepted_at) VALUES
         ('10000000-0000-4000-8000-000000000001', 'Administradora Ficticia', 'admin.catalogo@example.test', true, 'active', now(), now()),
         ('10000000-0000-4000-8000-000000000002', 'Visitante Ficticio', 'pessoa.aprendiz@example.test', true, 'active', now(), now());
@@ -163,7 +185,212 @@ export async function seedMvpCatalog(pool: Pool): Promise<void> {
         revision.created_by_user_id, revision.created_at
       FROM achievements root JOIN achievement_revisions revision ON revision.id = root.published_revision_id
       ON CONFLICT DO NOTHING;
-    `);
+    `;
+      for (const statement of catalogStatements.split(';')) {
+        if (statement.trim()) await client.query(statement);
+      }
+    }
+
+    const demoStatements: Array<[string, unknown[]]> = [
+      [
+        `
+          INSERT INTO users
+            (id, auth_name, email_normalized, email_verified, status, email_verified_at, terms_accepted_at)
+          VALUES ($1, 'Pessoa Demo', $2, true, 'active', now(), now())
+          ON CONFLICT (id) DO UPDATE SET
+            auth_name = EXCLUDED.auth_name,
+            email_normalized = EXCLUDED.email_normalized,
+            email_verified = true,
+            status = 'active',
+            email_verified_at = COALESCE(users.email_verified_at, now()),
+            deletion_requested_at = NULL,
+            updated_at = now()
+        `,
+        [demoUserId, email],
+      ],
+      [
+        `
+          INSERT INTO auth_accounts
+            (id, account_id, provider_id, issuer, user_id, password)
+          VALUES
+            ('12000000-0000-4000-8000-000000000002', $1::text, 'credential', 'local:credential', $1::uuid, $2)
+          ON CONFLICT (issuer, account_id) DO UPDATE SET
+            password = EXCLUDED.password,
+            updated_at = now()
+        `,
+        [demoUserId, passwordHash],
+      ],
+      [
+        `
+          INSERT INTO user_roles (user_id, role, granted_by_user_id)
+          VALUES ($1, 'user', '10000000-0000-4000-8000-000000000001')
+          ON CONFLICT DO NOTHING
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO professional_profiles
+            (user_id, display_name, current_role_id, desired_role_id, experience_level, profile_version)
+          VALUES (
+            $1, 'Pessoa Demo',
+            '11000000-0000-4000-8000-000000000002',
+            '11000000-0000-4000-8000-000000000001',
+            'intermediate', 1
+          )
+          ON CONFLICT (user_id) DO UPDATE SET
+            display_name = EXCLUDED.display_name,
+            current_role_id = EXCLUDED.current_role_id,
+            desired_role_id = EXCLUDED.desired_role_id,
+            experience_level = EXCLUDED.experience_level,
+            updated_at = now()
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO profile_interest_categories (user_id, category_id) VALUES
+            ($1, '20000000-0000-4000-8000-000000000001'),
+            ($1, '20000000-0000-4000-8000-000000000002')
+          ON CONFLICT DO NOTHING
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO profile_interest_skills (user_id, skill_id) VALUES
+            ($1, '30000000-0000-4000-8000-000000000001'),
+            ($1, '30000000-0000-4000-8000-000000000005'),
+            ($1, '30000000-0000-4000-8000-000000000006')
+          ON CONFLICT DO NOTHING
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO user_trail_states
+            (user_id, trail_id, status, current_stream_version, started_at, last_activity_at,
+             last_seen_revision_id, start_command_id)
+          VALUES
+            ($1, '40000000-0000-4000-8000-000000000001', 'completed', 5,
+             now() - interval '30 days', now() - interval '10 days',
+             '41000000-0000-4000-8000-000000000001', '60000000-0000-4000-8000-000000000001'),
+            ($1, '40000000-0000-4000-8000-000000000002', 'in_progress', 1,
+              now() - interval '7 days', now() - interval '1 day',
+              '41000000-0000-4000-8000-000000000002', '60000000-0000-4000-8000-000000000002')
+          ON CONFLICT (user_id, trail_id) DO NOTHING
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO progress_events
+            (user_id, trail_id, step_id, observed_trail_revision_id, new_state, source,
+             command_id, base_stream_version, stream_version, occurred_at)
+          VALUES
+            ($1, '40000000-0000-4000-8000-000000000001', '42000000-0000-4000-8000-000000000001', '41000000-0000-4000-8000-000000000001', 'completed', 'user', '61000000-0000-4000-8000-000000000001', 0, 1, now() - interval '28 days'),
+            ($1, '40000000-0000-4000-8000-000000000001', '42000000-0000-4000-8000-000000000002', '41000000-0000-4000-8000-000000000001', 'completed', 'user', '61000000-0000-4000-8000-000000000002', 1, 2, now() - interval '24 days'),
+            ($1, '40000000-0000-4000-8000-000000000001', '42000000-0000-4000-8000-000000000003', '41000000-0000-4000-8000-000000000001', 'completed', 'user', '61000000-0000-4000-8000-000000000003', 2, 3, now() - interval '20 days'),
+            ($1, '40000000-0000-4000-8000-000000000001', '42000000-0000-4000-8000-000000000004', '41000000-0000-4000-8000-000000000001', 'completed', 'user', '61000000-0000-4000-8000-000000000004', 3, 4, now() - interval '15 days'),
+            ($1, '40000000-0000-4000-8000-000000000001', '42000000-0000-4000-8000-000000000005', '41000000-0000-4000-8000-000000000001', 'completed', 'user', '61000000-0000-4000-8000-000000000005', 4, 5, now() - interval '10 days'),
+            ($1, '40000000-0000-4000-8000-000000000002', '42000000-0000-4000-8000-000000000006', '41000000-0000-4000-8000-000000000002', 'completed', 'user', '61000000-0000-4000-8000-000000000006', 0, 1, now() - interval '1 day')
+          ON CONFLICT (command_id) DO NOTHING
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO user_step_states
+            (user_id, trail_id, step_id, current_state, latest_event_id, updated_at)
+          SELECT event.user_id, event.trail_id, event.step_id, event.new_state, event.id, event.occurred_at
+          FROM progress_events event
+          WHERE event.command_id IN (
+            '61000000-0000-4000-8000-000000000001',
+            '61000000-0000-4000-8000-000000000002',
+            '61000000-0000-4000-8000-000000000003',
+            '61000000-0000-4000-8000-000000000004',
+            '61000000-0000-4000-8000-000000000005',
+            '61000000-0000-4000-8000-000000000006'
+          )
+          ON CONFLICT (user_id, trail_id, step_id) DO NOTHING
+        `,
+        [],
+      ],
+      [
+        `
+          INSERT INTO user_certification_records
+            (id, user_id, certification_id, observed_revision_id, obtained_on,
+             external_identifier, expires_on, verification_status)
+          VALUES (
+            '62000000-0000-4000-8000-000000000001', $1,
+            '50000000-0000-4000-8000-000000000001',
+            '51000000-0000-4000-8000-000000000001',
+            current_date - 10, 'DEMO-DADOS-001', current_date + 720, 'self_declared'
+          )
+          ON CONFLICT DO NOTHING
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO user_achievement_awards
+            (user_id, achievement_id, achievement_revision_id, awarded_at, evidence)
+          SELECT $1, '70000000-0000-4000-8000-000000000001',
+            '71000000-0000-4000-8000-000000000001', event.occurred_at,
+            jsonb_build_object(
+              'criterionType', 'completed_steps', 'requiredCount', 1, 'actualCount', 6,
+              'trigger', jsonb_build_object('type', 'progress_event', 'eventId', event.id)
+            )
+          FROM progress_events event
+          WHERE event.command_id = '61000000-0000-4000-8000-000000000001'
+          ON CONFLICT DO NOTHING
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO user_achievement_awards
+            (user_id, achievement_id, achievement_revision_id, evidence)
+          VALUES (
+            $1, '70000000-0000-4000-8000-000000000002',
+            '71000000-0000-4000-8000-000000000002',
+            jsonb_build_object(
+              'criterionType', 'certification_records', 'requiredCount', 1, 'actualCount', 1,
+              'trigger', jsonb_build_object(
+                'type', 'certification_record',
+                'recordId', '62000000-0000-4000-8000-000000000001'
+              )
+            )
+          )
+          ON CONFLICT DO NOTHING
+        `,
+        [demoUserId],
+      ],
+      [
+        `
+          INSERT INTO learning_recommendations
+            (id, user_id, rule_set_id, target_type, trail_id, step_id, rank, reason_code,
+             evidence, profile_version, progress_stream_version, catalog_revision_id)
+          VALUES (
+            '80000000-0000-4000-8000-000000000001', $1,
+            '50000000-0000-4000-8000-000000000001', 'trail_step',
+            '40000000-0000-4000-8000-000000000002',
+            '42000000-0000-4000-8000-000000000007', 1, 'next_eligible_step',
+            jsonb_build_object(
+              'position', 2,
+              'completedPrerequisiteStepIds', jsonb_build_array('42000000-0000-4000-8000-000000000006'),
+              'progressStreamVersion', 1
+            ),
+            1, 6, '41000000-0000-4000-8000-000000000002'
+          )
+          ON CONFLICT DO NOTHING
+        `,
+        [demoUserId],
+      ],
+    ];
+    for (const [statement, values] of demoStatements) {
+      await client.query(statement, values);
+    }
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
@@ -174,11 +401,17 @@ export async function seedMvpCatalog(pool: Pool): Promise<void> {
 }
 
 async function main() {
-  const connectionString = process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL;
-  if (!connectionString) throw new Error('MIGRATION_DATABASE_URL or DATABASE_URL is required');
+  const connectionString = process.env.MIGRATION_DATABASE_URL;
+  const email = process.env.DEMO_USER_EMAIL;
+  const password = process.env.DEMO_USER_PASSWORD;
+  if (!connectionString) throw new Error('MIGRATION_DATABASE_URL is required');
+  if (!email) throw new Error('DEMO_USER_EMAIL is required');
+  if (!password || password.length < 12) {
+    throw new Error('DEMO_USER_PASSWORD with at least 12 characters is required');
+  }
   const pool = new Pool({ connectionString });
   try {
-    await seedMvpCatalog(pool);
+    await seedMvpCatalog(pool, { email, password });
   } finally {
     await pool.end();
   }

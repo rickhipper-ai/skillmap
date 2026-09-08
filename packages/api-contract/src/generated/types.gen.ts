@@ -23,13 +23,15 @@ export type ValidationProblem = Problem & {
 };
 
 export type RegistrationRequest = {
+    name: string;
     email: string;
     password: string;
     acceptTerms: true;
 };
 
-export type PendingRegistration = {
-    status: 'pending_verification';
+export type RegistrationResult = {
+    status: 'pending_verification' | 'active';
+    emailVerification: 'required' | 'automatic';
 };
 
 export type ProfileInput = {
@@ -407,9 +409,9 @@ export type RegisterUserError = RegisterUserErrors[keyof RegisterUserErrors];
 
 export type RegisterUserResponses = {
     /**
-     * Pending account created; no session is issued.
+     * Account created; no session is issued.
      */
-    201: PendingRegistration;
+    201: RegistrationResult;
 };
 
 export type RegisterUserResponse = RegisterUserResponses[keyof RegisterUserResponses];
