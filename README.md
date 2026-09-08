@@ -118,11 +118,12 @@ o token de confirmacao e enviado normalmente. A API recusa inicializar em `produ
 
 ### Web e Compose
 
-| Variavel                                                             | Finalidade                                              |
-| -------------------------------------------------------------------- | ------------------------------------------------------- |
-| `VITE_API_BASE_URL`                                                  | URL da API em build; localmente `http://localhost:3000` |
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT` | PostgreSQL local                                        |
-| `MAILPIT_SMTP_PORT`, `MAILPIT_WEB_PORT`                              | portas locais do Mailpit                                |
+| Variavel                                                             | Finalidade                                                      |
+| -------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `VITE_API_BASE_URL`                                                  | Base same-origin da API em build; use `/api`                    |
+| `API_PROXY_TARGET`                                                   | Destino do proxy `/api` no Vite; padrao `http://127.0.0.1:3000` |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT` | PostgreSQL local                                                |
+| `MAILPIT_SMTP_PORT`, `MAILPIT_WEB_PORT`                              | portas locais do Mailpit                                        |
 
 Os valores versionados em `.env.example` sao exclusivamente ficticios. Em staging/producao injete
 segredos pelo secret manager da plataforma; nao grave `.env`, URL com senha, token, cookie, dump,
@@ -198,6 +199,13 @@ docker build --pull -t skill-maps-web:local -f apps/web/Dockerfile .
 A API roda como usuario `node` na porta 3000. O web usa nginx sem privilegio na porta 8080, expoe
 `/health/live`, serve fallback SPA e encaminha `/api/` para `API_UPSTREAM` (padrao
 `http://api:3000`). Bases estao fixadas por digest; dependencias usam lockfile congelado.
+
+No Render, publique o web como Web Service Docker usando `apps/web/Dockerfile`, contexto na raiz do
+repositorio, health check `/health/live` e `API_UPSTREAM=https://skill-maps-api.onrender.com` (sem barra
+final). Mantenha `VITE_API_BASE_URL=/api` e `WEB_ORIGIN=https://skill-maps-web.onrender.com` na API. O
+nginx remove apenas o prefixo `/api`, portanto `/api/v1/sessions` chega a API como `/v1/sessions`, e
+cookies de sessao/CSRF permanecem host-only no dominio do web. Um Static Site com fallback para
+`/index.html` nao executa esse proxy; nesse caso, `/api/*` devolve a SPA em vez de chegar a API.
 
 ## Operacao e decisoes
 

@@ -24,7 +24,7 @@ export function CertificationRecordsPage() {
       <section className="credentials-page">
         <p className="eyebrow">Evidencias profissionais</p>
         <h1 tabIndex={-1}>Certificacoes e conquistas</h1>
-        <p role="status">Carregando credenciais...</p>
+        <p role="status">Carregando certificações...</p>
       </section>
     );
   }
@@ -34,7 +34,7 @@ export function CertificationRecordsPage() {
       <section className="credentials-page">
         <p className="eyebrow">Evidencias profissionais</p>
         <h1 tabIndex={-1}>Certificacoes e conquistas</h1>
-        <p role="alert">Nao foi possivel carregar suas credenciais e conquistas.</p>
+        <p role="alert">Nao foi possivel carregar suas certificações e conquistas.</p>
         <button
           type="button"
           onClick={() => void Promise.all([records.refetch(), achievements.refetch()])}

@@ -53,8 +53,7 @@ function AppShell() {
           <Link to="/">Inicio</Link>
           <Link to="/catalogo">Catalogo</Link>
           <Link to="/painel">Painel</Link>
-          <Link to="/credenciais">Credenciais</Link>
-          <Link to="/administracao">Administracao</Link>
+          <Link to="/credenciais">Certificações</Link>
           <Link to="/cadastro">Criar conta</Link>
           <Link to="/entrar">Entrar</Link>
         </nav>

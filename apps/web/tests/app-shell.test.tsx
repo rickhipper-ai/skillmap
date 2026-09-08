@@ -15,7 +15,13 @@ describe('application shell', () => {
   it('provides semantic navigation, main content, and one page heading', async () => {
     renderRoute();
 
-    expect(screen.getByRole('navigation', { name: 'Principal' })).toBeInTheDocument();
+    const navigation = screen.getByRole('navigation', { name: 'Principal' });
+    expect(navigation).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Certificações' })).toHaveAttribute(
+      'href',
+      '/credenciais',
+    );
+    expect(screen.queryByRole('link', { name: 'Administracao' })).not.toBeInTheDocument();
     expect(screen.getByRole('main')).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
